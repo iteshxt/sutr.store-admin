@@ -51,10 +51,6 @@ const userSchema = new Schema<User>(
     }
 );
 
-// Indexes
-userSchema.index({ firebaseUid: 1 });
-userSchema.index({ email: 1 });
-
 const UserModel: Model<User> =
     mongoose.models.User || mongoose.model<User>('User', userSchema);
 
