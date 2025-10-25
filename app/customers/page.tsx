@@ -417,7 +417,7 @@ export default function CustomersPage() {
                         <div className="flex items-start justify-between mb-3">
                           <div>
                             <p className="text-xs text-gray-500 uppercase tracking-wider">Order ID</p>
-                            <p className="text-sm font-semibold text-gray-900 mt-0.5">#{order._id.slice(-8)}</p>
+                            <p className="text-sm font-semibold text-gray-900 mt-0.5">#{order.orderNumber || order._id.slice(-8)}</p>
                           </div>
                           <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-bold border ${
                             order.status === 'delivered' ? 'bg-green-100 text-green-800 border-green-200' :
