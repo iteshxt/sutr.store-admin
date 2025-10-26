@@ -84,7 +84,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
 
       {/* Sidebar */}
       <div className={`
-        fixed left-0 top-0 z-50 h-screen w-64 bg-black flex flex-col
+        fixed left-0 top-0 z-50 h-full w-64 bg-black flex flex-col
         transition-transform duration-300 ease-in-out
         lg:translate-x-0 lg:w-56
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -92,15 +92,15 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         {/* Close button for mobile */}
         <button
           onClick={onMobileClose}
-          className="lg:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-white z-10"
+          className="lg:hidden absolute top-3 right-3 p-1.5 text-gray-400 hover:text-white z-10"
         >
-          <XMarkIcon className="h-6 w-6" />
+          <XMarkIcon className="h-5 w-5" />
         </button>
 
         {/* Logo Section */}
-        <div className="flex items-center justify-center px-4 py-6 shrink-0">
+        <div className="flex items-center justify-center px-4 py-4 shrink-0">
           <Logo 
-            className="h-10 w-auto sm:h-12"
+            className="h-8 w-auto"
             width={150}
             height={48}
             alt="Sutr Admin Logo"
@@ -108,8 +108,8 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         </div>
 
         {/* Scrollable Navigation Area */}
-        <div className="flex-1 overflow-y-auto px-4 pb-2">
-          <nav className="space-y-2">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 min-h-0">
+          <nav className="space-y-1.5 py-2">
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -117,7 +117,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                   key={item.name}
                   href={item.href}
                   onClick={handleLinkClick}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
                     isActive
                       ? 'bg-white text-black! font-medium'
                       : 'text-gray-400! hover:text-white! hover:bg-gray-900'
@@ -132,11 +132,11 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         </div>
 
         {/* Admin Profile & Logout - Fixed at bottom */}
-        <div className="space-y-2 px-4 py-4 border-t border-gray-800 shrink-0">
+        <div className="space-y-1.5 px-4 py-3 border-t border-gray-800 shrink-0">
           <Link
             href="/profile"
             onClick={handleLinkClick}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
               pathname === '/profile'
                 ? 'bg-white text-black! font-medium'
                 : 'text-gray-400! hover:text-white! hover:bg-gray-900'
@@ -151,7 +151,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
 
           <button
             onClick={() => signOut()}
-            className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-gray-400! hover:text-white! hover:bg-gray-900 transition-all"
+            className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-gray-400! hover:text-white! hover:bg-gray-900 transition-all"
           >
             <ArrowRightStartOnRectangleIcon className="h-5 w-5 shrink-0" />
             <span className="text-sm">Log out</span>
