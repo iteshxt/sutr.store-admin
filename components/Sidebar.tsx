@@ -15,6 +15,7 @@ import {
   ChartBarIcon,
   UserCircleIcon,
   ArrowRightStartOnRectangleIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 
 const navigation = [
@@ -26,7 +27,12 @@ const navigation = [
   { name: 'Statistic', href: '/statistics', icon: ChartBarIcon },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const { signOut, user } = useAuth();
   const [adminName, setAdminName] = useState<string>('Admin');
@@ -60,65 +66,97 @@ export default function Sidebar() {
     fetchAdminName();
   }, [user]);
 
+  const handleLinkClick = () => {
+    if (onMobileClose) {
+      onMobileClose();
+    }
+  };
+
   return (
-    <div className="fixed left-0 top-0 z-40 h-screen w-56 bg-black flex flex-col py-8 px-4">
-      {/* Logo Section */}
-      <div className="flex items-center justify-center px-4 mb-10">
-        <Logo 
-          className="h-12 w-auto"
-          width={150}
-          height={48}
-          alt="Sutr Admin Logo"
+    <>
+      {/* Mobile Overlay */}
+      {mobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={onMobileClose}
         />
-      </div>
+      )}
 
-      {/* Main Navigation */}
-      <nav className="flex-1 space-y-2">
-        {navigation.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                isActive
-                  ? 'bg-white text-black! font-medium'
-                  : 'text-gray-400! hover:text-white! hover:bg-gray-900'
-              }`}
-            >
-              <item.icon className="h-5 w-5 shrink-0" />
-              <span className="text-sm">{item.name}</span>
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Admin Profile & Logout */}
-      <div className="space-y-2 pt-4 border-t border-gray-800">
-        <Link
-          href="/profile"
-          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-            pathname === '/profile'
-              ? 'bg-white text-black! font-medium'
-              : 'text-gray-400! hover:text-white! hover:bg-gray-900'
-          }`}
-        >
-          <UserCircleIcon className="h-5 w-5 shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{adminName}</p>
-            <p className={`text-xs ${pathname === '/profile' ? 'text-gray-600' : 'text-gray-500'}`}>View Profile</p>
-          </div>
-        </Link>
-
+      {/* Sidebar */}
+      <div className={`
+        fixed left-0 top-0 z-50 h-screen w-64 bg-black flex flex-col py-8 px-4
+        transition-transform duration-300 ease-in-out
+        lg:translate-x-0 lg:w-56
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        {/* Close button for mobile */}
         <button
-          onClick={() => signOut()}
-          className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-gray-400! hover:text-white! hover:bg-gray-900 transition-all"
+          onClick={onMobileClose}
+          className="lg:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-white"
         >
-          <ArrowRightStartOnRectangleIcon className="h-5 w-5 shrink-0" />
-          <span className="text-sm">Log out</span>
+          <XMarkIcon className="h-6 w-6" />
         </button>
+
+        {/* Logo Section */}
+        <div className="flex items-center justify-center px-4 mb-10">
+          <Logo 
+            className="h-12 w-auto"
+            width={150}
+            height={48}
+            alt="Sutr Admin Logo"
+          />
+        </div>
+
+        {/* Main Navigation */}
+        <nav className="flex-1 space-y-2">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                onClick={handleLinkClick}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                  isActive
+                    ? 'bg-white text-black! font-medium'
+                    : 'text-gray-400! hover:text-white! hover:bg-gray-900'
+                }`}
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                <span className="text-sm">{item.name}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Admin Profile & Logout */}
+        <div className="space-y-2 pt-4 border-t border-gray-800">
+          <Link
+            href="/profile"
+            onClick={handleLinkClick}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+              pathname === '/profile'
+                ? 'bg-white text-black! font-medium'
+                : 'text-gray-400! hover:text-white! hover:bg-gray-900'
+            }`}
+          >
+            <UserCircleIcon className="h-5 w-5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{adminName}</p>
+              <p className={`text-xs ${pathname === '/profile' ? 'text-gray-600' : 'text-gray-500'}`}>View Profile</p>
+            </div>
+          </Link>
+
+          <button
+            onClick={() => signOut()}
+            className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-gray-400! hover:text-white! hover:bg-gray-900 transition-all"
+          >
+            <ArrowRightStartOnRectangleIcon className="h-5 w-5 shrink-0" />
+            <span className="text-sm">Log out</span>
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
