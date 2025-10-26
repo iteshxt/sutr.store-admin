@@ -84,7 +84,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
 
       {/* Sidebar */}
       <div className={`
-        fixed left-0 top-0 z-50 h-screen w-64 bg-black flex flex-col py-8 px-4
+        fixed left-0 top-0 z-50 h-screen w-64 bg-black flex flex-col
         transition-transform duration-300 ease-in-out
         lg:translate-x-0 lg:w-56
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -92,45 +92,47 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         {/* Close button for mobile */}
         <button
           onClick={onMobileClose}
-          className="lg:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-white"
+          className="lg:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-white z-10"
         >
           <XMarkIcon className="h-6 w-6" />
         </button>
 
         {/* Logo Section */}
-        <div className="flex items-center justify-center px-4 mb-10">
+        <div className="flex items-center justify-center px-4 py-6 shrink-0">
           <Logo 
-            className="h-12 w-auto"
+            className="h-10 w-auto sm:h-12"
             width={150}
             height={48}
             alt="Sutr Admin Logo"
           />
         </div>
 
-        {/* Main Navigation */}
-        <nav className="flex-1 space-y-2">
-          {navigation.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={handleLinkClick}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                  isActive
-                    ? 'bg-white text-black! font-medium'
-                    : 'text-gray-400! hover:text-white! hover:bg-gray-900'
-                }`}
-              >
-                <item.icon className="h-5 w-5 shrink-0" />
-                <span className="text-sm">{item.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
+        {/* Scrollable Navigation Area */}
+        <div className="flex-1 overflow-y-auto px-4 pb-2">
+          <nav className="space-y-2">
+            {navigation.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={handleLinkClick}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                    isActive
+                      ? 'bg-white text-black! font-medium'
+                      : 'text-gray-400! hover:text-white! hover:bg-gray-900'
+                  }`}
+                >
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span className="text-sm">{item.name}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
 
-        {/* Admin Profile & Logout */}
-        <div className="space-y-2 pt-4 border-t border-gray-800">
+        {/* Admin Profile & Logout - Fixed at bottom */}
+        <div className="space-y-2 px-4 py-4 border-t border-gray-800 shrink-0">
           <Link
             href="/profile"
             onClick={handleLinkClick}
