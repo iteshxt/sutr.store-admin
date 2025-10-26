@@ -52,7 +52,6 @@ export async function GET(request: NextRequest) {
             count: transformedProducts.length
         });
     } catch (error: any) {
-        console.error('Error fetching products:', error);
         return NextResponse.json(
             { error: 'Failed to fetch products', message: error.message },
             { status: 500 }
@@ -128,7 +127,6 @@ export async function POST(request: NextRequest) {
             { status: 201 }
         );
     } catch (error: any) {
-        console.error('Error creating product:', error);
         return NextResponse.json(
             { error: 'Failed to create product', message: error.message },
             { status: 500 }

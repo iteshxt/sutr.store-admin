@@ -62,7 +62,6 @@ export async function GET(
         return NextResponse.json({ orders: mappedOrders });
 
     } catch (error: any) {
-        console.error('Error fetching user orders:', error);
         return NextResponse.json(
             { error: 'Failed to fetch orders', details: error.message },
             { status: 500 }

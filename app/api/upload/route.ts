@@ -61,7 +61,6 @@ export async function POST(request: NextRequest) {
             message: 'Image uploaded successfully',
         });
     } catch (error: any) {
-        console.error('Error uploading image:', error);
         return NextResponse.json(
             { error: 'Failed to upload image', message: error.message },
             { status: 500 }
@@ -91,7 +90,6 @@ export async function DELETE(request: NextRequest) {
             message: 'Image deleted successfully',
         });
     } catch (error: any) {
-        console.error('Error deleting image:', error);
         return NextResponse.json(
             { error: 'Failed to delete image', message: error.message },
             { status: 500 }

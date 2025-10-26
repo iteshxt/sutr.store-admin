@@ -33,19 +33,6 @@ export async function GET(request: NextRequest) {
             .skip(skip)
             .lean();
 
-        // Log actual data from DB to see field names
-        if (orders.length > 0) {
-            console.log('=== RAW ORDER FROM DB ===');
-            console.log('Order keys:', Object.keys(orders[0]));
-            console.log('Order total:', orders[0].total);
-            console.log('Order totalAmount:', (orders[0] as any).totalAmount);
-            console.log('Order items:', orders[0].items);
-            if (orders[0].items && orders[0].items.length > 0) {
-                console.log('First item keys:', Object.keys(orders[0].items[0]));
-                console.log('First item:', orders[0].items[0]);
-            }
-        }
-
         // Populate user data for each order
         const ordersWithUserData = await Promise.all(
             orders.map(async (order: any) => {
@@ -86,7 +73,6 @@ export async function GET(request: NextRequest) {
             skip,
         });
     } catch (error: any) {
-        console.error('Error fetching orders:', error);
         return NextResponse.json(
             { success: false, error: 'Failed to fetch orders', message: error.message },
             { status: 500 }

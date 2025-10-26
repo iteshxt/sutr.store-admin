@@ -60,8 +60,6 @@ export async function GET(request: NextRequest) {
             createdAt: { $gte: startDate, $lte: endDate }
         });
 
-        console.log('Completed orders count:', completedOrders.length);
-
         const totalRevenue = completedOrders.reduce((sum, order) => {
             return sum + Number(order.total || 0);
         }, 0); const totalOrders = completedOrders.length;
@@ -113,9 +111,6 @@ export async function GET(request: NextRequest) {
         // Order Status Report - Get ALL orders regardless of date range
         const allOrdersForStatus = await Order.find({});
 
-        console.log('Total orders in DB:', allOrdersForStatus.length);
-        console.log('Order statuses:', allOrdersForStatus.map(o => o.status));
-
         const orderReport = {
             pending: allOrdersForStatus.filter(o => o.status === 'pending').length,
             processing: allOrdersForStatus.filter(o => o.status === 'processing').length,
@@ -156,7 +151,6 @@ export async function GET(request: NextRequest) {
         });
 
     } catch (error) {
-        console.error('Reports API Error:', error);
         return NextResponse.json(
             {
                 success: false,

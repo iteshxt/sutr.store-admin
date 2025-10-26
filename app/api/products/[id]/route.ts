@@ -39,7 +39,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
         return NextResponse.json({ success: true, product: transformedProduct });
     } catch (error: any) {
-        console.error('Error fetching product:', error);
         return NextResponse.json(
             { error: 'Failed to fetch product', message: error.message },
             { status: 500 }
@@ -87,7 +86,6 @@ export async function PUT(request: NextRequest, context: RouteContext) {
             message: 'Product updated successfully',
         });
     } catch (error: any) {
-        console.error('Error updating product:', error);
         return NextResponse.json(
             { error: 'Failed to update product', message: error.message },
             { status: 500 }
@@ -116,7 +114,6 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
             message: 'Product deleted successfully',
         });
     } catch (error: any) {
-        console.error('Error deleting product:', error);
         return NextResponse.json(
             { error: 'Failed to delete product', message: error.message },
             { status: 500 }

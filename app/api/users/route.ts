@@ -43,7 +43,6 @@ export async function GET(request: NextRequest) {
             skip,
         });
     } catch (error: any) {
-        console.error('Error fetching users:', error);
         return NextResponse.json(
             { success: false, error: 'Failed to fetch users', message: error.message },
             { status: 500 }

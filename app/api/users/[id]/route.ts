@@ -36,7 +36,6 @@ export async function DELETE(
                 const admin = (await import('firebase-admin')).default;
                 await admin.auth().deleteUser(user.firebaseUid);
             } catch (firebaseError: any) {
-                console.error('Firebase deletion error:', firebaseError);
                 // Continue with MongoDB deletion even if Firebase fails
             }
         }
@@ -50,7 +49,6 @@ export async function DELETE(
         });
 
     } catch (error: any) {
-        console.error('Error deleting user:', error);
         return NextResponse.json(
             { error: 'Failed to delete user', details: error.message },
             { status: 500 }
@@ -97,7 +95,6 @@ export async function PATCH(
         });
 
     } catch (error: any) {
-        console.error('Error updating user:', error);
         return NextResponse.json(
             { error: 'Failed to update user', details: error.message },
             { status: 500 }
