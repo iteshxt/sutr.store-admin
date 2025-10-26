@@ -78,7 +78,6 @@ export default function Dashboard() {
         setRecentOrders(data.recentOrders);
       }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
       showToast('Failed to load dashboard data', 'error');
     } finally {
       setLoading(false);
@@ -142,17 +141,17 @@ export default function Dashboard() {
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="px-8 py-6 border-b border-gray-200">
-        <div className="flex items-center justify-between">
+      <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-sm text-gray-600 mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">
               Welcome back! Here's what's happening with your store today.
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <ClockIcon className="w-5 h-5 text-gray-400" />
-            <span className="text-sm text-gray-600">
+            <ClockIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+            <span className="text-xs sm:text-sm text-gray-600">
               Last updated: {new Date().toLocaleTimeString()}
             </span>
           </div>
@@ -160,7 +159,7 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto p-8">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Stats Grid */}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -208,8 +207,8 @@ export default function Dashboard() {
             <div className="border-b border-gray-200 px-6 py-5 bg-gray-50">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Recent Orders</h2>
-                  <p className="text-sm text-gray-600 mt-1">Latest transactions from your store</p>
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900">Recent Orders</h2>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-1">Latest transactions from your store</p>
                 </div>
                 <Link
                   href="/orders"
@@ -221,48 +220,50 @@ export default function Dashboard() {
             </div>
             
             {recentOrders.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Order ID</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Customer</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Items</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Total</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white">
-                    {recentOrders.map((order) => (
-                      <tr key={order._id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <span className="text-sm font-semibold text-gray-900">#{order.orderNumber}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-sm text-gray-900">{order.customerEmail}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <ShoppingBagIcon className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm text-gray-600">{order.itemCount} item{order.itemCount !== 1 ? 's' : ''}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-sm font-bold text-gray-900">{formatPrice(order.total)}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${
-                            order.status === 'delivered' ? 'bg-green-100 text-green-800 border-green-200' :
-                            order.status === 'shipped' ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                            order.status === 'processing' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
-                            order.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-200' :
-                            'bg-gray-100 text-gray-800 border-gray-200'
+              <>
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-4 lg:px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Order ID</th>
+                        <th className="px-4 lg:px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Customer</th>
+                        <th className="px-4 lg:px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Items</th>
+                        <th className="px-4 lg:px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Total</th>
+                        <th className="px-4 lg:px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                        <th className="px-4 lg:px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 bg-white">
+                      {recentOrders.map((order) => (
+                        <tr key={order._id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 lg:px-6 py-4">
+                            <span className="text-sm font-semibold text-gray-900">#{order.orderNumber}</span>
+                          </td>
+                          <td className="px-4 lg:px-6 py-4">
+                            <span className="text-sm text-gray-900">{order.customerEmail}</span>
+                          </td>
+                          <td className="px-4 lg:px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <ShoppingBagIcon className="w-4 h-4 text-gray-400" />
+                              <span className="text-sm text-gray-600">{order.itemCount} item{order.itemCount !== 1 ? 's' : ''}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 lg:px-6 py-4">
+                            <span className="text-sm font-bold text-gray-900">{formatPrice(order.total)}</span>
+                          </td>
+                          <td className="px-4 lg:px-6 py-4">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${
+                              order.status === 'delivered' ? 'bg-green-100 text-green-800 border-green-200' :
+                              order.status === 'shipped' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                              order.status === 'processing' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                              order.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-200' :
+                              'bg-gray-100 text-gray-800 border-gray-200'
                           }`}>
                             {order.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 lg:px-6 py-4">
                           <span className="text-sm text-gray-600">{formatDate(order.createdAt)}</span>
                         </td>
                       </tr>
@@ -270,6 +271,38 @@ export default function Dashboard() {
                   </tbody>
                 </table>
               </div>
+              
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-3">
+                {recentOrders.map((order) => (
+                  <div key={order._id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <span className="text-sm font-bold text-gray-900">#{order.orderNumber}</span>
+                        <p className="text-xs text-gray-600 mt-1">{order.customerEmail}</p>
+                      </div>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${
+                        order.status === 'delivered' ? 'bg-green-100 text-green-800 border-green-200' :
+                        order.status === 'shipped' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                        order.status === 'processing' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                        order.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-200' :
+                        'bg-gray-100 text-gray-800 border-gray-200'
+                      }`}>
+                        {order.status}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <ShoppingBagIcon className="w-4 h-4" />
+                        <span>{order.itemCount} item{order.itemCount !== 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="font-bold text-gray-900">{formatPrice(order.total)}</div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-2">{formatDate(order.createdAt)}</div>
+                  </div>
+                ))}
+              </div>
+            </>
             ) : (
               <div className="p-12 text-center">
                 <ChartBarIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />

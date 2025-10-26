@@ -53,12 +53,8 @@ export default function CustomersPage() {
       
       if (data.success && data.users) {
         setCustomers(data.users);
-        if (data.users.length > 0) {
-          setSelectedCustomer(data.users[0]);
-        }
       }
     } catch (error) {
-      console.error('Error fetching customers:', error);
       showToast('Failed to load customers', 'error');
     } finally {
       setLoading(false);
@@ -86,7 +82,6 @@ export default function CustomersPage() {
       const data = await response.json();
       setUserOrders(data.orders || []);
     } catch (error) {
-      console.error('Error fetching user orders:', error);
       setUserOrders([]);
     } finally {
       setLoadingOrders(false);
@@ -127,7 +122,6 @@ export default function CustomersPage() {
       setSelectedCustomer(null);
       
     } catch (error) {
-      console.error('Error deleting user:', error);
       showToast('Failed to delete user', 'error');
     } finally {
       setDeletingUser(false);
@@ -168,7 +162,6 @@ export default function CustomersPage() {
       setSelectedCustomer({ ...selectedCustomer, role: newRole });
       
     } catch (error) {
-      console.error('Error updating role:', error);
       showToast('Failed to update user role', 'error');
     }
   };
@@ -198,24 +191,24 @@ export default function CustomersPage() {
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="px-8 py-6 border-b border-gray-200">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Customers</h1>
-          <p className="text-sm text-gray-600 mt-1">
+      <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b border-gray-200">
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Customers</h1>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">
             View and manage customer information
           </p>
         </div>
 
         {/* Search and Filters */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="flex-1 relative">
-            <MagnifyingGlassIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+            <MagnifyingGlassIcon className="absolute left-3 sm:left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search customers by name, email, or phone..."
+              placeholder="Search customers..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all hover:border-gray-300"
+              className="w-full pl-10 sm:pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all hover:border-gray-300"
             />
           </div>
 
@@ -229,24 +222,24 @@ export default function CustomersPage() {
             <option value="admin">Admins</option>
           </select>
 
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 text-center sm:text-left">
             <span className="font-semibold text-gray-900">{filteredCustomers.length}</span> customers found
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Customers Table */}
-        <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        {/* Customers Table - Desktop */}
+        <div className="hidden lg:block flex-1 overflow-y-auto">
           <table className="w-full">
             <thead className="bg-gray-50 sticky top-0 z-10 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Customer</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Email</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Phone</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Role</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Joined</th>
+                <th className="px-4 lg:px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Customer</th>
+                <th className="px-4 lg:px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Email</th>
+                <th className="px-4 lg:px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Phone</th>
+                <th className="px-4 lg:px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Role</th>
+                <th className="px-4 lg:px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Joined</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
@@ -312,9 +305,68 @@ export default function CustomersPage() {
           </table>
         </div>
 
+        {/* Mobile Cards */}
+        <div className="lg:hidden space-y-4">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : filteredCustomers.length === 0 ? (
+            <div className="bg-white rounded-lg p-8 text-center">
+              <p className="text-gray-500">No customers found</p>
+            </div>
+          ) : (
+            filteredCustomers.map((customer) => (
+              <div
+                key={customer._id}
+                onClick={() => setSelectedCustomer(customer)}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-linear-to-br from-gray-200 to-gray-300 overflow-hidden flex items-center justify-center shrink-0">
+                    {customer.avatar ? (
+                      <Image
+                        src={customer.avatar}
+                        alt={customer.name || 'Customer'}
+                        width={48}
+                        height={48}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-lg font-bold text-gray-600">
+                        {customer.name?.charAt(0)?.toUpperCase() || customer.email?.charAt(0)?.toUpperCase() || '?'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-semibold text-gray-900 truncate">
+                        {customer.name || 'N/A'}
+                      </h3>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border shrink-0 ${
+                        customer.role === 'admin' 
+                          ? 'bg-purple-100 text-purple-800 border-purple-200' 
+                          : 'bg-blue-100 text-blue-800 border-blue-200'
+                      }`}>
+                        {customer.role}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1 truncate">{customer.email}</p>
+                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                      <span>{customer.phone || 'No phone'}</span>
+                      <span>•</span>
+                      <span>Joined {customer.createdAt ? formatDate(customer.createdAt) : 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
         {/* Customer Details Sidebar */}
         {selectedCustomer && (
-          <div className="w-[420px] bg-white border-l border-gray-200 flex flex-col shadow-xl">
+          <div className="hidden lg:flex w-[420px] bg-white border-l border-gray-200 flex-col shadow-xl">
             {/* Sidebar Header */}
             <div className="px-6 py-5 border-b border-gray-200 bg-gray-50">
               <div className="flex items-start justify-between">
@@ -501,6 +553,179 @@ export default function CustomersPage() {
                         {selectedCustomer.createdAt ? formatDate(selectedCustomer.createdAt) : 'N/A'}
                       </p>
                     </div>
+                  </div>
+
+                  {selectedCustomer.addresses && selectedCustomer.addresses.length > 0 && (
+                    <div className="p-3 rounded-xl border border-gray-200 bg-white">
+                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Shipping Address</p>
+                      <p className="text-sm text-gray-900">
+                        {selectedCustomer.addresses[0].addressLine1}
+                        {selectedCustomer.addresses[0].addressLine2 && `, ${selectedCustomer.addresses[0].addressLine2}`}
+                      </p>
+                      <p className="text-sm text-gray-900">
+                        {selectedCustomer.addresses[0].city}, {selectedCustomer.addresses[0].state} {selectedCustomer.addresses[0].postalCode}
+                      </p>
+                      <p className="text-sm text-gray-900">{selectedCustomer.addresses[0].country}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Customer Details Modal */}
+        {selectedCustomer && (
+          <div className="lg:hidden fixed inset-0 bg-white z-50 overflow-y-auto">
+            {/* Mobile Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between z-10">
+              <h2 className="text-lg font-bold text-gray-900">Customer Details</h2>
+              <button
+                onClick={() => setSelectedCustomer(null)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <XMarkIcon className="w-6 h-6 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Mobile Content */}
+            <div className="p-4 space-y-6">
+              {/* Customer Info */}
+              <div className="bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-16 h-16 rounded-full bg-linear-to-br from-gray-200 to-gray-300 overflow-hidden ring-4 ring-white shadow-md flex items-center justify-center">
+                    {selectedCustomer.avatar ? (
+                      <Image
+                        src={selectedCustomer.avatar}
+                        alt={selectedCustomer.name || 'Customer'}
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-2xl font-bold text-gray-600">
+                        {selectedCustomer.name?.charAt(0)?.toUpperCase() || selectedCustomer.email?.charAt(0)?.toUpperCase() || '?'}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">{selectedCustomer.name || 'N/A'}</h2>
+                    <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-bold mt-1 ${
+                      selectedCustomer.role === 'admin' 
+                        ? 'bg-purple-100 text-purple-800 border border-purple-200' 
+                        : 'bg-blue-100 text-blue-800 border border-blue-200'
+                    }`}>
+                      {selectedCustomer.role}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <EnvelopeIcon className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm">{selectedCustomer.email}</span>
+                  </div>
+                  {selectedCustomer.phone && (
+                    <div className="flex items-center gap-2 text-gray-700">
+                      <PhoneIcon className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm">{selectedCustomer.phone}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                  <ShoppingBagIcon className="w-5 h-5 text-blue-600 mb-2" />
+                  <p className="text-2xl font-bold text-gray-900">{userOrders.length}</p>
+                  <p className="text-xs text-gray-600 mt-1">Total Orders</p>
+                </div>
+                <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+                  <span className="text-2xl font-bold text-gray-900">
+                    {formatPrice(userOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0))}
+                  </span>
+                  <p className="text-xs text-gray-600 mt-1">Total Spent</p>
+                </div>
+              </div>
+
+              {/* Recent Orders */}
+              <div>
+                <h3 className="font-bold text-gray-900 text-sm uppercase tracking-wider mb-3">Recent Orders</h3>
+                {userOrders.length > 0 ? (
+                  <div className="space-y-2">
+                    {userOrders.slice(0, 5).map((order: any) => (
+                      <div key={order._id} className="bg-white rounded-xl border border-gray-200 p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <p className="text-xs font-mono text-gray-500">#{order._id?.substring(0, 8)}</p>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border mt-1 ${
+                              order.status === 'delivered' ? 'bg-green-100 text-green-800 border-green-200' :
+                              order.status === 'shipped' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                              order.status === 'processing' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                              'bg-gray-100 text-gray-800 border-gray-200'
+                            }`}>
+                              {order.status}
+                            </span>
+                          </div>
+                          <p className="text-sm font-bold text-gray-900">{formatPrice(order.total)}</p>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          {order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''} • {order.createdAt ? formatDate(order.createdAt) : 'N/A'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center bg-gray-50 rounded-xl border border-gray-200">
+                    <ShoppingBagIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-sm text-gray-600">No orders yet</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Admin Actions */}
+              <div>
+                <h3 className="font-bold text-gray-900 text-sm uppercase tracking-wider mb-3">Admin Actions</h3>
+                <div className="space-y-2">
+                  <button
+                    onClick={handleToggleRole}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-medium text-sm shadow-md"
+                  >
+                    <UserIcon className="w-4 h-4" />
+                    <span>Change to {selectedCustomer.role === 'admin' ? 'Customer' : 'Admin'}</span>
+                  </button>
+
+                  <button
+                    onClick={handleDeleteUser}
+                    disabled={deletingUser}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all font-medium text-sm shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <TrashIcon className="w-4 h-4" />
+                    <span>{deletingUser ? 'Deleting...' : 'Delete User'}</span>
+                  </button>
+                </div>
+
+                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="text-xs text-red-800">
+                    <strong>Warning:</strong> Deleting a user will permanently remove them from both the database and authentication system.
+                  </p>
+                </div>
+              </div>
+
+              {/* Account Information */}
+              <div>
+                <h3 className="font-bold text-gray-900 text-sm uppercase tracking-wider mb-3">Account Details</h3>
+                <div className="space-y-3">
+                  <div className="p-3 rounded-xl border border-gray-200 bg-white">
+                    <p className="text-xs text-gray-500 uppercase tracking-wider">Customer ID</p>
+                    <p className="text-sm font-semibold text-gray-900 mt-1 break-all">{selectedCustomer._id}</p>
+                  </div>
+
+                  <div className="p-3 rounded-xl border border-gray-200 bg-white">
+                    <p className="text-xs text-gray-500 uppercase tracking-wider">Joined Date</p>
+                    <p className="text-sm font-semibold text-gray-900 mt-1">
+                      {selectedCustomer.createdAt ? formatDate(selectedCustomer.createdAt) : 'N/A'}
+                    </p>
                   </div>
 
                   {selectedCustomer.addresses && selectedCustomer.addresses.length > 0 && (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
@@ -13,6 +13,9 @@ export default function NewProductPage() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [localFiles, setLocalFiles] = useState<File[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [tagsInput, setTagsInput] = useState('');
+  const [colorsInput, setColorsInput] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -37,6 +40,34 @@ export default function NewProductPage() {
   });
 
   const availableSizes = ['S', 'M', 'L', 'XL', 'XXL'];
+
+  // Fetch categories from database
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { getAuth } = await import('firebase/auth');
+        const auth = getAuth();
+        const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+
+        const response = await fetch('/api/categories', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.categories) {
+            setCategories(data.categories);
+          }
+        }
+      } catch (error) {
+        // Silent fail
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +117,6 @@ export default function NewProductPage() {
         throw new Error(data.error || 'Failed to create product');
       }
     } catch (error: any) {
-      console.error('Error creating product:', error);
       showToast(error.message || 'Failed to create product', 'error');
     } finally {
       setLoading(false);
@@ -114,6 +144,14 @@ export default function NewProductPage() {
   };
 
   const handleArrayChange = (field: 'sizes' | 'colors' | 'tags', value: string) => {
+    // Update the input string state
+    if (field === 'tags') {
+      setTagsInput(value);
+    } else if (field === 'colors') {
+      setColorsInput(value);
+    }
+    
+    // Update the formData array
     setFormData((prev) => ({
       ...prev,
       [field]: value.split(',').map(item => item.trim()).filter(Boolean),
@@ -139,28 +177,28 @@ export default function NewProductPage() {
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="px-8 py-6 border-b border-gray-200">
-        <div className="flex items-center gap-4">
+      <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b border-gray-200">
+        <div className="flex items-center gap-3 sm:gap-4">
           <Link
             href="/products"
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
           >
             <ArrowLeftIcon className="h-5 w-5 text-gray-700" />
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Add New Product</h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Create a new product for your store
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Add New Product</h1>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">
+              Create a new product in your catalog
             </p>
           </div>
         </div>
       </div>
 
       {/* Form Content */}
-      <div className="flex-1 overflow-auto px-8 py-6">
+      <div className="flex-1 overflow-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         <form onSubmit={handleSubmit} className="max-w-7xl">
           {/* Top Section: Basic Info + Image Upload */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Left: Basic Info (2 columns) */}
             <div className="lg:col-span-2 space-y-6">
               <h2 className="text-lg font-semibold text-gray-900">Basic Information</h2>
@@ -210,9 +248,16 @@ export default function NewProductPage() {
                       required
                       value={formData.category}
                       onChange={handleChange}
-                      placeholder="e.g., Oversized Tee, Hoodies"
-                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
+                      list="categories-list"
+                      style={{ backgroundImage: 'none' }}
+                      placeholder="Enter or select category"
+                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/5 transition-all [&::-webkit-calendar-picker-indicator]:hidden"
                     />
+                    <datalist id="categories-list">
+                      {categories.map((cat) => (
+                        <option key={cat} value={cat} />
+                      ))}
+                    </datalist>
                   </div>
 
                   <div>
@@ -238,7 +283,7 @@ export default function NewProductPage() {
                   <input
                     type="text"
                     id="tags"
-                    value={formData.tags.join(', ')}
+                    value={tagsInput}
                     onChange={(e) => handleArrayChange('tags', e.target.value)}
                     placeholder="e.g., trendy, comfortable, casual"
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
@@ -355,7 +400,7 @@ export default function NewProductPage() {
                 <input
                   type="text"
                   id="colors"
-                  value={formData.colors.join(', ')}
+                  value={colorsInput}
                   onChange={(e) => handleArrayChange('colors', e.target.value)}
                   placeholder="Black, White, Navy, Red"
                   className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
@@ -512,7 +557,7 @@ export default function NewProductPage() {
           <div className="flex justify-end gap-3 pt-8 mt-8 border-t border-gray-200">
             <Link
               href="/products"
-              className="px-8 py-3 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all"
+              className="px-8 py-3 rounded-xl border-2 border-gray-200 text-sm font-semibold text-black! hover:bg-gray-50 hover:border-gray-300 transition-all"
             >
               Cancel
             </Link>

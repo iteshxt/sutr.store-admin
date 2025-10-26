@@ -78,7 +78,6 @@ export default function StatisticsPage() {
         setStatistics(data.statistics);
       }
     } catch (error) {
-      console.error('Error fetching statistics:', error);
       showToast('Failed to load statistics', 'error');
     } finally {
       setLoading(false);
@@ -111,17 +110,17 @@ export default function StatisticsPage() {
   return (
     <div className="h-full flex flex-col bg-white overflow-hidden">
       {/* Header */}
-      <div className="px-8 py-6 border-b border-gray-200 shrink-0">
-        <div className="flex items-center justify-between">
+      <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b border-gray-200 shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Statistics & Analytics</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Statistics & Analytics</h1>
             <p className="text-sm text-gray-600 mt-1">
               Comprehensive insights into your store's performance
             </p>
           </div>
           <button
             onClick={fetchStatistics}
-            className="flex items-center gap-2 px-4 py-2.5 bg-black text-white rounded-xl hover:bg-gray-800 transition-all font-medium text-sm shadow-md hover:shadow-lg"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-black text-white rounded-xl hover:bg-gray-800 transition-all font-medium text-sm shadow-md hover:shadow-lg"
           >
             <ArrowPathIcon className="w-4 h-4 text-white" />
             <span className="text-white">Refresh</span>
@@ -130,7 +129,7 @@ export default function StatisticsPage() {
       </div>
 
       {/* Main Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto p-8 min-h-0">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 min-h-0">
         <div className="max-w-7xl mx-auto space-y-8">
           
           {/* Key Metrics Cards */}

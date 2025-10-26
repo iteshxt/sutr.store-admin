@@ -70,7 +70,6 @@ export default function ProfilePage() {
         setPhone(data.profile.phone || '');
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
       showToast('Failed to load profile', 'error');
     } finally {
       setLoading(false);
@@ -111,7 +110,6 @@ export default function ProfilePage() {
         showToast('Profile updated successfully', 'success');
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
       showToast('Failed to update profile', 'error');
     } finally {
       setSaving(false);
@@ -161,7 +159,6 @@ export default function ProfilePage() {
       
       showToast('Password changed successfully', 'success');
     } catch (error: any) {
-      console.error('Error changing password:', error);
       if (error.code === 'auth/wrong-password') {
         showToast('Current password is incorrect', 'error');
       } else if (error.code === 'auth/weak-password') {
@@ -196,9 +193,9 @@ export default function ProfilePage() {
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="px-8 py-6 border-b border-gray-200">
+      <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b border-gray-200">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Admin Profile</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin Profile</h1>
           <p className="text-sm text-gray-600 mt-1">
             Manage your account settings and preferences
           </p>
@@ -206,19 +203,19 @@ export default function ProfilePage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto p-8">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Profile Overview Card */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-start gap-6">
-              <div className="w-24 h-24 rounded-full bg-linear-to-br from-gray-700 to-gray-900 flex items-center justify-center shrink-0 shadow-lg">
-                <UserCircleIcon className="w-16 h-16 text-white" />
+          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-linear-to-br from-gray-700 to-gray-900 flex items-center justify-center shrink-0 shadow-lg">
+                <UserCircleIcon className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
               </div>
-              <div className="flex-1">
-                <div className="flex items-start justify-between">
+              <div className="flex-1 w-full sm:w-auto">
+                <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{profile.name}</h2>
-                    <p className="text-gray-600 mt-1">{profile.email}</p>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{profile.name}</h2>
+                    <p className="text-gray-600 mt-1 break-all">{profile.email}</p>
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200 mt-3">
                       <ShieldCheckIcon className="w-3 h-3 mr-1" />
                       {profile.role.toUpperCase()}
@@ -230,7 +227,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Edit Profile Form */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                 <UserCircleIcon className="w-5 h-5" />
@@ -291,7 +288,7 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div className="flex gap-3 pt-4">
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <button
                     type="submit"
                     disabled={saving}
@@ -342,7 +339,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Change Password Section */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                 <KeyIcon className="w-5 h-5" />
@@ -404,7 +401,7 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div className="flex gap-3 pt-4">
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <button
                     type="submit"
                     disabled={saving}
@@ -437,11 +434,11 @@ export default function ProfilePage() {
           </div>
 
           {/* Account Information */}
-          <div className="bg-blue-50 rounded-xl border border-blue-200 p-6">
-            <h3 className="text-lg font-bold text-blue-900 mb-4">Account Information</h3>
+          <div className="bg-blue-50 rounded-xl border border-blue-200 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-bold text-blue-900 mb-4">Account Information</h3>
             <div className="space-y-2 text-sm text-blue-800">
-              <p><strong>Account ID:</strong> {profile._id}</p>
-              <p><strong>Firebase UID:</strong> {profile.firebaseUid}</p>
+              <p className="break-all"><strong>Account ID:</strong> {profile._id}</p>
+              <p className="break-all"><strong>Firebase UID:</strong> {profile.firebaseUid}</p>
               {profile.createdAt && (
                 <p><strong>Member Since:</strong> {new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
               )}
