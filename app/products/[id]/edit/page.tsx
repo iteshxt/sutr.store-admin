@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { Product } from '@/types';
 import ImageUpload from '@/components/ImageUpload';
 import { uploadImagesToCloudinary } from '@/lib/upload-images';
 import { useToast } from '@/components/ToastProvider';
@@ -68,7 +67,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
             setCategories(data.categories);
           }
         }
-      } catch (error) {
+      } catch {
         // Silent fail
       }
     };
@@ -163,14 +162,14 @@ export default function EditProductPage({ params }: EditProductPageProps) {
         } else {
           throw new Error('Product not found');
         }
-      } catch (error) {
+      } catch {
         showToast('Failed to load product', 'error');
         router.push('/products');
       }
     };
 
     loadProduct();
-  }, [params, router]);
+  }, [params, router, showToast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,7 +186,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
       if (localFiles.length > 0) {
         try {
           newImageUrls = await uploadImagesToCloudinary(localFiles);
-        } catch (uploadError) {
+        } catch {
           throw new Error('Failed to upload images. Please try again.');
         }
       }
@@ -227,8 +226,8 @@ export default function EditProductPage({ params }: EditProductPageProps) {
       } else {
         throw new Error(data.error || 'Failed to update product');
       }
-    } catch (error: any) {
-      showToast(error.message || 'Failed to update product', 'error');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Failed to update product', 'error');
     } finally {
       setLoading(false);
     }
@@ -253,7 +252,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
       setFormData(prev => ({
         ...prev,
         [section]: {
-          ...(prev[section as keyof typeof prev] as any),
+          ...(prev[section as keyof typeof prev] as Record<string, unknown>),
           [field]: checked
         }
       }));
@@ -261,7 +260,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
       setFormData(prev => ({
         ...prev,
         [section]: {
-          ...(prev[section as keyof typeof prev] as any),
+          ...(prev[section as keyof typeof prev] as Record<string, unknown>),
           [field]: value
         }
       }));
@@ -482,7 +481,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                   name="salePrice"
                   value={formData.salePrice}
                   onChange={handleChange}
-                  step="0.01"
+                  step="1"
                   min="0"
                   className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
                   placeholder="0.00"
@@ -564,7 +563,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
           <div className="border-t border-gray-200 pt-8 mt-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-6">Product Details</h2>
             <p className="text-sm text-gray-500 mb-6">
-              These details will appear in the "Additional Information" tab on the product page
+              These details will appear in the &quot;Additional Information&quot; tab on the product page
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -631,7 +630,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
 
             <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
               <p className="text-xs text-blue-900 leading-relaxed">
-                <strong className="font-semibold">Note:</strong> Wash instructions (e.g., "Machine Wash Cold") and care instructions are hardcoded in the frontend and same for all products.
+                <strong className="font-semibold">Note:</strong> Wash instructions (e.g., &quot;Machine Wash Cold&quot;) and care instructions are hardcoded in the frontend and same for all products.
               </p>
             </div>
           </div>
