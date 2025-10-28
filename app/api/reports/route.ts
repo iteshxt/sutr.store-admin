@@ -85,13 +85,24 @@ export async function GET(request: NextRequest) {
         const topProduct = Object.values(productSales).sort((a, b) => b.quantity - a.quantity)[0];
         const topSellingProduct = topProduct ? topProduct.name : 'N/A';
 
+        // Helper function to get total stock
+        const getTotalStock = (stock: number | number[] | undefined): number => {
+            if (Array.isArray(stock)) {
+                return stock.reduce((sum, s) => sum + (s || 0), 0);
+            }
+            return stock || 0;
+        };
+
         // Inventory Report
         const allProducts = await Product.find();
         const totalProducts = allProducts.length;
-        const lowStockProducts = allProducts.filter(p => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 10).length;
-        const outOfStockProducts = allProducts.filter(p => (p.stock ?? 0) === 0).length;
+        const lowStockProducts = allProducts.filter(p => {
+            const totalStock = getTotalStock(p.stock);
+            return totalStock > 0 && totalStock <= 10;
+        }).length;
+        const outOfStockProducts = allProducts.filter(p => getTotalStock(p.stock) === 0).length;
         const totalInventoryValue = allProducts.reduce((sum, product) => {
-            return sum + (Number(product.price) * Number(product.stock ?? 0));
+            return sum + (Number(product.price) * getTotalStock(product.stock));
         }, 0);        // Customer Report
         const allUsers = await User.find();
         const totalCustomers = allUsers.length;

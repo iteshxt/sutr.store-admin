@@ -16,6 +16,7 @@ export default function NewProductPage() {
   const [categories, setCategories] = useState<string[]>([]);
   const [tagsInput, setTagsInput] = useState('');
   const [colorsInput, setColorsInput] = useState('');
+  const [stockInput, setStockInput] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -24,11 +25,11 @@ export default function NewProductPage() {
     category: '',
     subcategory: '',
     tags: [] as string[],
-    stock: '',
+    stock: [] as number[],
     sizes: [] as string[],
     colors: [] as string[],
     images: [] as string[],
-    inStock: true,
+    inStock: [] as boolean[],
     featured: false,
     // Product Details (for Additional Information tab)
     productDetails: {
@@ -74,6 +75,11 @@ export default function NewProductPage() {
     setLoading(true);
 
     try {
+      // Validate that stock array matches sizes array
+      if (formData.stock.length > 0 && formData.stock.length !== formData.sizes.length) {
+        throw new Error(`Stock quantities (${formData.stock.length}) must match the number of selected sizes (${formData.sizes.length})`);
+      }
+
       // Upload new local files to Cloudinary first
       let imageUrls: string[] = [];
       if (localFiles.length > 0) {
@@ -100,7 +106,7 @@ export default function NewProductPage() {
           images: imageUrls,
           price: parseFloat(formData.price),
           salePrice: formData.salePrice ? parseFloat(formData.salePrice) : undefined,
-          stock: parseInt(formData.stock) || 0,
+          stock: formData.stock,
         }),
       });
 
@@ -158,6 +164,28 @@ export default function NewProductPage() {
     }));
   };
 
+  const handleStockChange = (value: string) => {
+    setStockInput(value);
+    
+    // Convert comma-separated string to array of numbers
+    const stockArray = value
+      .split(',')
+      .map(item => {
+        const num = parseInt(item.trim());
+        return isNaN(num) ? 0 : num;
+      })
+      .filter((_, index) => index < formData.sizes.length); // Only take as many as there are sizes
+    
+    // Automatically calculate inStock array based on stock values
+    const inStockArray = stockArray.map(stock => stock > 0);
+    
+    setFormData((prev) => ({
+      ...prev,
+      stock: stockArray,
+      inStock: inStockArray,
+    }));
+  };
+
   const toggleSize = (size: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -167,7 +195,7 @@ export default function NewProductPage() {
     }));
   };
 
-  const toggleFeature = (feature: 'inStock' | 'featured') => {
+  const toggleFeature = (feature: 'featured') => {
     setFormData((prev) => ({
       ...prev,
       [feature]: !prev[feature]
@@ -349,15 +377,20 @@ export default function NewProductPage() {
                   Stock Quantity
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="stock"
                   name="stock"
-                  min="0"
-                  value={formData.stock}
-                  onChange={handleChange}
+                  value={stockInput}
+                  onChange={(e) => handleStockChange(e.target.value)}
                   className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
-                  placeholder="0"
+                  placeholder="e.g., 12,14,15"
                 />
+                <p className="text-xs text-gray-500 mt-2">
+                  {formData.sizes.length > 0 
+                    ? `Enter ${formData.sizes.length} values (one for each size: ${formData.sizes.join(', ')})`
+                    : 'Select sizes first, then enter stock for each size (comma-separated)'
+                  }
+                </p>
               </div>
             </div>
           </div>
@@ -487,36 +520,21 @@ export default function NewProductPage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-6">Product Status</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
-              {/* In Stock Toggle */}
-              <div className="flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-gray-50/50">
+              {/* Stock Status - Auto-calculated */}
+              <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${formData.inStock ? 'bg-green-100' : 'bg-gray-200'}`}>
-                    <svg className={`w-5 h-5 ${formData.inStock ? 'text-green-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div>
-                    <label htmlFor="inStock" className="block text-sm font-semibold text-gray-900">
-                      In Stock
-                    </label>
-                    <p className="text-xs text-gray-500">Available for purchase</p>
+                    <p className="block text-sm font-semibold text-gray-900">
+                      Stock Status
+                    </p>
+                    <p className="text-xs text-gray-600">Auto-calculated per size based on stock quantity</p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => toggleFeature('inStock')}
-                  className={`
-                    relative inline-flex h-7 w-12 items-center rounded-full transition-colors
-                    ${formData.inStock ? 'bg-black' : 'bg-gray-300'}
-                  `}
-                >
-                  <span
-                    className={`
-                      inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-md
-                      ${formData.inStock ? 'translate-x-6' : 'translate-x-1'}
-                    `}
-                  />
-                </button>
               </div>
 
               {/* Featured Toggle */}

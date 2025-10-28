@@ -13,8 +13,8 @@ export interface Product {
     tags?: string[];
     sizes: string[];
     colors: string[];
-    inStock: boolean;
-    stock?: number;
+    inStock?: boolean[];
+    stock?: number[];
     featured?: boolean;
     // Product Details for "Additional Information" tab
     productDetails?: {

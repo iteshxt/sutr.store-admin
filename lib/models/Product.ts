@@ -66,13 +66,12 @@ const productSchema = new Schema<Product>(
             default: [],
         },
         inStock: {
-            type: Boolean,
-            required: true,
-            default: true,
+            type: [Boolean],
+            default: [],
         },
         stock: {
-            type: Number,
-            min: 0,
+            type: [Number],
+            default: [],
         },
         featured: {
             type: Boolean,

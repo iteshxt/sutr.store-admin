@@ -120,6 +120,22 @@ export default function ProductsPage() {
     }
   };
 
+  // Helper function to check if product has any stock
+  const hasAnyStock = (product: Product) => {
+    if (Array.isArray(product.inStock)) {
+      return product.inStock.some(inStock => inStock === true);
+    }
+    return product.inStock === true;
+  };
+
+  // Helper function to get total stock
+  const getTotalStock = (product: Product) => {
+    if (Array.isArray(product.stock)) {
+      return product.stock.reduce((sum, stock) => sum + (stock || 0), 0);
+    }
+    return product.stock || 0;
+  };
+
   // Since filtering is now done server-side, we can use products directly
   const filteredProducts = products
     .filter((product) => {
@@ -128,10 +144,10 @@ export default function ProductsPage() {
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.category.toLowerCase().includes(searchTerm.toLowerCase());
       
-      // Client-side status filter
+      // Client-side status filter - handle both boolean and array
       const matchesStatus = filterStatus === 'all' || 
-        (filterStatus === 'instock' && product.inStock) ||
-        (filterStatus === 'outofstock' && !product.inStock);
+        (filterStatus === 'instock' && hasAnyStock(product)) ||
+        (filterStatus === 'outofstock' && !hasAnyStock(product));
       
       return matchesSearch && matchesStatus;
     })
@@ -142,9 +158,9 @@ export default function ProductsPage() {
         case 'price-high':
           return (b.salePrice || b.price) - (a.salePrice || a.price);
         case 'stock-low':
-          return (a.stock || 0) - (b.stock || 0);
+          return getTotalStock(a) - getTotalStock(b);
         case 'stock-high':
-          return (b.stock || 0) - (a.stock || 0);
+          return getTotalStock(b) - getTotalStock(a);
         case 'name':
         default:
           return a.name.localeCompare(b.name);
@@ -274,15 +290,32 @@ export default function ProductsPage() {
                     <span className="text-sm text-gray-600 capitalize">{product.category}</span>
                   </td>
                   <td className="px-4 lg:px-6 py-4">
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                        product.inStock
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {product.inStock ? 'In Stock' : 'Out of Stock'}
-                    </span>
+                    {Array.isArray(product.inStock) && Array.isArray(product.sizes) && product.sizes.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {product.sizes.map((size, idx) => (
+                          <span
+                            key={idx}
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                              product.inStock?.[idx]
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {size}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                          hasAnyStock(product)
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {hasAnyStock(product) ? 'In Stock' : 'Out of Stock'}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 lg:px-6 py-4">
                     <div className="flex flex-col">
@@ -297,9 +330,29 @@ export default function ProductsPage() {
                     </div>
                   </td>
                   <td className="px-4 lg:px-6 py-4">
-                    <span className={`text-sm font-medium ${product.stock && product.stock < 10 ? 'text-red-600' : 'text-gray-900'}`}>
-                      {product.stock || 0}
-                    </span>
+                    {Array.isArray(product.stock) && Array.isArray(product.sizes) && product.sizes.length > 0 ? (
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {product.sizes.map((size, idx) => (
+                            <div key={idx} className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 rounded text-xs border border-gray-200">
+                              <span className="font-medium text-gray-700">{size}:</span>
+                              <span className={`font-semibold ${
+                                (product.stock?.[idx] || 0) < 5 ? 'text-red-600' : 'text-gray-900'
+                              }`}>
+                                {product.stock?.[idx] || 0}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          Total: <span className="font-semibold text-gray-900">{getTotalStock(product)}</span>
+                        </span>
+                      </div>
+                    ) : (
+                      <span className={`text-sm font-medium ${getTotalStock(product) < 10 ? 'text-red-600' : 'text-gray-900'}`}>
+                        {getTotalStock(product)}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 lg:px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
@@ -381,11 +434,26 @@ export default function ProductsPage() {
                     <h3 className="font-semibold text-gray-900 mb-1 truncate">{product.name}</h3>
                     <p className="text-sm text-gray-600 capitalize mb-2">{product.category}</p>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {product.inStock ? 'In Stock' : 'Out of Stock'}
-                      </span>
+                      {Array.isArray(product.inStock) && Array.isArray(product.sizes) && product.sizes.length > 0 ? (
+                        product.sizes.map((size, idx) => (
+                          <span
+                            key={idx}
+                            className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                              product.inStock?.[idx]
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {size}
+                          </span>
+                        ))
+                      ) : (
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          hasAnyStock(product) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {hasAnyStock(product) ? 'In Stock' : 'Out of Stock'}
+                        </span>
+                      )}
                       {product.featured && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                           ⭐ Featured
@@ -404,9 +472,27 @@ export default function ProductsPage() {
                         {formatPrice(product.price)}
                       </div>
                     )}
-                    <div className="text-xs text-gray-600 mt-1">
-                      Stock: <span className={product.stock && product.stock < 10 ? 'text-red-600 font-medium' : 'font-medium'}>{product.stock || 0}</span>
-                    </div>
+                    {Array.isArray(product.stock) && Array.isArray(product.sizes) && product.sizes.length > 0 ? (
+                      <div className="mt-2">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {product.sizes.map((size, idx) => (
+                            <div key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-50 rounded text-xs border border-gray-200">
+                              <span className="font-medium text-gray-700">{size}:</span>
+                              <span className={`font-semibold ${
+                                (product.stock?.[idx] || 0) < 5 ? 'text-red-600' : 'text-gray-900'
+                              }`}>{product.stock?.[idx] || 0}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1.5">
+                          Total: <span className="font-semibold text-gray-900">{getTotalStock(product)}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-gray-600 mt-1">
+                        Stock: <span className={getTotalStock(product) < 10 ? 'text-red-600 font-medium' : 'font-medium'}>{getTotalStock(product)}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <Link

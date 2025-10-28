@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
         // Parse request body
         const body = await request.json();
-        const { name, description, price, salePrice, category, images, sizes, colors, inStock, featured, stock } = body;
+        const { name, description, price, salePrice, category, images, sizes, colors, inStock, featured, stock, subcategory, tags, productDetails } = body;
 
         // Validate required fields
         if (!name || !description || !price || !category) {
@@ -78,6 +78,16 @@ export async function POST(request: NextRequest) {
                 { error: 'Missing required fields: name, description, price, category' },
                 { status: 400 }
             );
+        }
+
+        // Validate stock array matches sizes array
+        if (stock && Array.isArray(stock) && sizes && Array.isArray(sizes)) {
+            if (stock.length !== sizes.length) {
+                return NextResponse.json(
+                    { error: `Stock array length (${stock.length}) must match sizes array length (${sizes.length})` },
+                    { status: 400 }
+                );
+            }
         }
 
         // Connect to database
@@ -103,12 +113,15 @@ export async function POST(request: NextRequest) {
             price: parseFloat(price),
             salePrice: salePrice ? parseFloat(salePrice) : undefined,
             category,
+            subcategory: subcategory || undefined,
+            tags: tags || [],
             images: images || [],
             sizes: sizes || [],
             colors: colors || [],
             inStock: inStock !== false,
             featured: featured === true,
-            stock: stock ? parseInt(stock) : 0,
+            stock: stock && Array.isArray(stock) ? stock : [],
+            productDetails: productDetails || {},
         });
 
         // Transform _id to id for frontend compatibility

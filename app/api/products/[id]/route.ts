@@ -58,6 +58,16 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         const body = await request.json();
         await connectDB();
 
+        // Validate stock array matches sizes array
+        if (body.stock && Array.isArray(body.stock) && body.sizes && Array.isArray(body.sizes)) {
+            if (body.stock.length !== body.sizes.length) {
+                return NextResponse.json(
+                    { error: `Stock array length (${body.stock.length}) must match sizes array length (${body.sizes.length})` },
+                    { status: 400 }
+                );
+            }
+        }
+
         // If name is being updated, regenerate slug
         if (body.name) {
             body.slug = generateSlug(body.name);
