@@ -386,6 +386,14 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                   <label htmlFor="category" className="block text-sm font-semibold text-gray-900 mb-2">
                     Category
                   </label>
+                  <style>{`
+                    #category::-webkit-calendar-picker-indicator {
+                      display: none !important;
+                    }
+                    #category {
+                      background-image: none !important;
+                    }
+                  `}</style>
                   <input
                     type="text"
                     id="category"
@@ -394,8 +402,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                     onChange={handleChange}
                     list="categories-list"
                     required
-                    style={{ backgroundImage: 'none' }}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/5 transition-all [&::-webkit-calendar-picker-indicator]:hidden"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
                     placeholder="Enter or select category"
                   />
                   <datalist id="categories-list">
