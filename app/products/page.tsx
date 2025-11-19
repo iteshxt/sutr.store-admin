@@ -5,7 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { formatPrice, getStatusColor } from '@/lib/utils';
-import { Product } from '@/types';
+import { Product, Banner } from '@/types';
+import BannerUploadModal from '@/components/BannerUploadModal';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -15,10 +16,13 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState('name');
   const [filterStatus, setFilterStatus] = useState('all');
   const [categories, setCategories] = useState<string[]>(['all']);
+  const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
+  const [currentBanner, setCurrentBanner] = useState<Banner | null>(null);
 
   useEffect(() => {
     fetchProducts();
     fetchCategories();
+    fetchCurrentBanner();
   }, [filterCategory]);
 
   const fetchCategories = async () => {
@@ -86,6 +90,18 @@ export default function ProductsPage() {
       return await auth.currentUser.getIdToken();
     }
     return '';
+  };
+
+  const fetchCurrentBanner = async () => {
+    try {
+      const response = await fetch('/api/banners');
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentBanner(data.banner);
+      }
+    } catch (error) {
+      console.error('Error fetching banner:', error);
+    }
   };
 
   // Delete product function
@@ -189,13 +205,22 @@ export default function ProductsPage() {
               Manage your product catalog · {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
             </p>
           </div>
-          <Link
-            href="/products/new"
-            className="inline-flex items-center justify-center gap-2 bg-black text-white px-4 sm:px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-colors font-medium text-sm w-full sm:w-auto"
-          >
-            <PlusIcon className="h-5 w-5 text-white" />
-            <span className="text-white">Add Product</span>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+            <button
+              onClick={() => setIsBannerModalOpen(true)}
+              className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-4 sm:px-5 py-2.5 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors font-medium text-sm whitespace-nowrap cursor-pointer"
+            >
+              <PlusIcon className="h-5 w-5 text-white" />
+              <span>Update Banner</span>
+            </button>
+            <Link
+              href="/products/new"
+              className="inline-flex items-center justify-center gap-2 bg-black text-white px-4 sm:px-5 py-2.5 rounded-lg hover:bg-gray-800 active:bg-gray-900 transition-colors font-medium text-sm whitespace-nowrap"
+            >
+              <PlusIcon className="h-5 w-5 text-white" />
+              <span>Add Product</span>
+            </Link>
+          </div>
         </div>
 
         {/* Filters */}
@@ -548,6 +573,16 @@ export default function ProductsPage() {
             </div>
           </div>
         )}
+
+      {/* Banner Upload Modal */}
+      <BannerUploadModal
+        isOpen={isBannerModalOpen}
+        onClose={() => setIsBannerModalOpen(false)}
+        onSuccess={(banner) => {
+          setCurrentBanner(banner);
+        }}
+        currentBanner={currentBanner}
+      />
       </div>
     </div>
   );

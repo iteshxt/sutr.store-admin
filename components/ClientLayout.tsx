@@ -48,8 +48,8 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
             </div>
           </div>
 
-          <main className="flex-1 p-2 sm:p-3 lg:pt-3 pt-16">
-            <div className="h-full bg-[#f5f5f0] rounded-2xl border border-gray-300 overflow-hidden" style={{ borderWidth: '0.5px' }}>
+          <main className="flex-1 p-2 sm:p-3 lg:pt-3 pt-16 relative z-0">
+            <div className="h-full bg-[#f5f5f0] rounded-2xl border border-gray-300 overflow-hidden relative" style={{ borderWidth: '0.5px' }}>
               {children}
             </div>
           </main>

@@ -119,3 +119,15 @@ export interface TopProduct {
     totalSold: number;
     revenue: number;
 }
+
+export interface Banner {
+    _id?: string;
+    id?: string;
+    bannerUrl: string;
+    cloudinaryPublicId: string;
+    title?: string;
+    link?: string;
+    isActive?: boolean;
+    createdAt?: Date;
+    updatedAt?: Date;
+}

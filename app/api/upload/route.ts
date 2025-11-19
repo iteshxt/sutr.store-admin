@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
         // Parse form data
         const formData = await request.formData();
         const file = formData.get('file') as File;
+        const folder = (formData.get('folder') as string) || 'sutr-store/products';
 
         if (!file) {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -39,9 +40,12 @@ export async function POST(request: NextRequest) {
             cloudinary.uploader
                 .upload_stream(
                     {
-                        folder: 'sutr-store/products',
-                        transformation: [
+                        folder: folder,
+                        transformation: folder.includes('products') ? [
                             { width: 1000, height: 1000, crop: 'limit' },
+                            { quality: 'auto' },
+                            { fetch_format: 'auto' },
+                        ] : [
                             { quality: 'auto' },
                             { fetch_format: 'auto' },
                         ],

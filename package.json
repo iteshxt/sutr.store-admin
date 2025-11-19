@@ -1,6 +1,6 @@
 {
-  "name": "sutr-admin",
-  "version": "1.2.1",
+  "name": "sutr.store-admin",
+  "version": "1.2.5",
   "private": true,
   "scripts": {
     "dev": "next dev",
