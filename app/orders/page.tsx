@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { XMarkIcon, EnvelopeIcon, PhoneIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, EnvelopeIcon, PhoneIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { formatPrice } from '@/lib/utils';
 import { Order } from '@/types';
 import { useToast } from '@/components/ToastProvider';
@@ -14,6 +14,10 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [filterStatus, setFilterStatus] = useState('all');
   const [priceRange, setPriceRange] = useState('all');
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+  const [editStatus, setEditStatus] = useState('');
+  const [editTrackingNumber, setEditTrackingNumber] = useState('');
+  const [updatingOrder, setUpdatingOrder] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -50,6 +54,74 @@ export default function OrdersPage() {
     }
   };
 
+  const openEditModal = (order: Order) => {
+    setEditingOrder(order);
+    setEditStatus(order.status || 'pending');
+    setEditTrackingNumber(order.trackingNumber || '');
+  };
+
+  const closeEditModal = () => {
+    setEditingOrder(null);
+    setEditStatus('');
+    setEditTrackingNumber('');
+  };
+
+  const updateOrder = async () => {
+    if (!editingOrder) return;
+
+    try {
+      setUpdatingOrder(true);
+
+      // Get auth token
+      const { getAuth } = await import('firebase/auth');
+      const auth = getAuth();
+      const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+
+      const response = await fetch(`/api/orders/${editingOrder._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          status: editStatus,
+          trackingNumber: editTrackingNumber || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update order');
+      }
+
+      const data = await response.json();
+
+      // Create the updated order object with all necessary fields
+      const updatedOrderData = {
+        ...selectedOrder,
+        ...data.order,
+      };
+
+      // Update the order in the local state
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === editingOrder._id ? updatedOrderData : order
+        )
+      );
+
+      // Update selected order with merged data to preserve all fields
+      setSelectedOrder(updatedOrderData);
+
+      showToast('Order updated successfully', 'success');
+      closeEditModal();
+    } catch (error: any) {
+      console.error('Error updating order:', error);
+      showToast(error.message || 'Failed to update order', 'error');
+    } finally {
+      setUpdatingOrder(false);
+    }
+  };
+
   const getStatusBadgeColor = (status: string | undefined) => {
     if (!status) return 'bg-gray-100 text-gray-800 border-gray-200';
     
@@ -58,11 +130,13 @@ export default function OrdersPage() {
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'processing':
         return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'shipped':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'out for delivery':
+        return 'bg-indigo-100 text-indigo-800 border-indigo-200';
       case 'paid':
       case 'confirmed':
         return 'bg-green-100 text-green-800 border-green-200';
-      case 'shipped':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'delivered':
         return 'bg-emerald-100 text-emerald-800 border-emerald-200';
       case 'cancelled':
@@ -117,9 +191,8 @@ export default function OrdersPage() {
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
             <option value="processing">Processing</option>
-            <option value="paid">Paid</option>
-            <option value="confirmed">Confirmed</option>
             <option value="shipped">Shipped</option>
+            <option value="out for delivery">Out for Delivery</option>
             <option value="delivered">Delivered</option>
             <option value="cancelled">Cancelled</option>
           </select>
@@ -298,12 +371,21 @@ export default function OrdersPage() {
                     </span>
                   </div>
                 </div>
-                <button 
-                  onClick={() => setSelectedOrder(null)} 
-                  className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                >
-                  <XMarkIcon className="w-5 h-5 text-gray-500" />
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => openEditModal(selectedOrder)}
+                    className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                    title="Edit Order"
+                  >
+                    <PencilIcon className="w-5 h-5 text-gray-600" />
+                  </button>
+                  <button 
+                    onClick={() => setSelectedOrder(null)} 
+                    className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    <XMarkIcon className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -425,6 +507,33 @@ export default function OrdersPage() {
                   )}
                 </div>
               </div>
+
+              {/* Tracking Information */}
+              <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-bold text-gray-900 text-sm uppercase tracking-wider">Tracking Information</h4>
+                  <button
+                    onClick={() => openEditModal(selectedOrder)}
+                    className="p-1.5 hover:bg-blue-100 rounded-lg transition-colors"
+                    title="Edit Tracking"
+                  >
+                    <PencilIcon className="w-4 h-4 text-blue-600" />
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {selectedOrder.trackingNumber ? (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Tracking Number</p>
+                      <p className="text-sm font-mono font-bold text-gray-900 bg-white p-2 rounded border border-blue-100">{selectedOrder.trackingNumber}</p>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-600 bg-white p-2 rounded border border-blue-100">
+                      <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Tracking Number</p>
+                      <p className="text-gray-500 italic">Not added yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Sidebar Footer - Fixed */}
@@ -443,12 +552,6 @@ export default function OrdersPage() {
                     <span className="font-semibold text-gray-900">{formatPrice(selectedOrder.shipping)}</span>
                   </div>
                 )}
-                {selectedOrder.tax !== undefined && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Tax</span>
-                    <span className="font-semibold text-gray-900">{formatPrice(selectedOrder.tax)}</span>
-                  </div>
-                )}
               </div>
 
               <div className="flex items-baseline justify-between pt-3 border-t border-gray-300">
@@ -461,9 +564,14 @@ export default function OrdersPage() {
               </div>
               
               <div className="grid grid-cols-2 gap-3">
-                <button className="px-4 py-3 bg-black text-white rounded-xl hover:bg-gray-800 font-bold text-sm shadow-lg hover:shadow-xl transition-all">
+                <a
+                  href="https://www.ekartlogistics.in/track-order"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-3 bg-black text-white rounded-xl hover:bg-gray-800 font-bold text-sm shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center"
+                >
                   Track
-                </button>
+                </a>
                 <button className="px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 font-bold text-sm shadow-lg hover:shadow-xl transition-all">
                   Refund
                 </button>
@@ -479,12 +587,21 @@ export default function OrdersPage() {
             <div className="px-4 py-4 border-b border-gray-200 bg-gray-50 shrink-0">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-gray-900">{selectedOrder.orderNumber}</h2>
-                <button 
-                  onClick={() => setSelectedOrder(null)} 
-                  className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                >
-                  <XMarkIcon className="w-6 h-6 text-gray-500" />
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => openEditModal(selectedOrder)}
+                    className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                    title="Edit Order"
+                  >
+                    <PencilIcon className="w-5 h-5 text-gray-600" />
+                  </button>
+                  <button 
+                    onClick={() => setSelectedOrder(null)} 
+                    className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    <XMarkIcon className="w-6 h-6 text-gray-500" />
+                  </button>
+                </div>
               </div>
               <div className="flex items-center gap-2 mt-2">
                 <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-bold ${getStatusBadgeColor(selectedOrder.status)}`}>
@@ -544,6 +661,32 @@ export default function OrdersPage() {
                 </div>
               )}
 
+              {/* Tracking Information */}
+              <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-gray-900 text-sm">Tracking Info</h3>
+                  <button
+                    onClick={() => openEditModal(selectedOrder)}
+                    className="p-1 hover:bg-blue-100 rounded transition-colors"
+                  >
+                    <PencilIcon className="w-4 h-4 text-blue-600" />
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {selectedOrder.trackingNumber ? (
+                    <div className="text-sm">
+                      <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Tracking Number</p>
+                      <p className="font-mono font-bold text-gray-900 bg-white p-2 rounded">{selectedOrder.trackingNumber}</p>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-600 bg-white p-2 rounded">
+                      <p className="text-xs font-semibold text-gray-500 uppercase">Tracking Number</p>
+                      <p className="text-gray-500 italic">Not added yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Order Items */}
               <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                 <h3 className="font-bold text-gray-900 mb-3 text-sm">Order Items</h3>
@@ -594,11 +737,104 @@ export default function OrdersPage() {
 
               {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-3 pb-4">
-                <button className="px-4 py-3 bg-black text-white rounded-xl hover:bg-gray-800 font-bold text-sm">
+                <a
+                  href="https://www.ekartlogistics.in/track-order"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-3 bg-black text-white rounded-xl hover:bg-gray-800 font-bold text-sm inline-flex items-center justify-center"
+                >
                   Track
-                </button>
+                </a>
                 <button className="px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 font-bold text-sm">
                   Refund
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Order Modal */}
+        {editingOrder && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Modal Header */}
+              <div className="sticky top-0 px-6 py-5 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-900">Edit Order</h3>
+                <button
+                  onClick={closeEditModal}
+                  className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  <XMarkIcon className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6 space-y-5">
+                {/* Order Number - Read Only */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-900 mb-2">Order Number</label>
+                  <input
+                    type="text"
+                    value={editingOrder.orderNumber}
+                    disabled
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                  />
+                </div>
+
+                {/* Status */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-900 mb-2">Order Status</label>
+                  <select
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="out for delivery">Out for Delivery</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1.5">Current: <span className={`inline-flex px-2 py-0.5 rounded-md text-xs font-bold ${getStatusBadgeColor(editingOrder.status)}`}>{editingOrder.status}</span></p>
+                </div>
+
+                {/* Tracking Number */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-900 mb-2">Tracking Number</label>
+                  <input
+                    type="text"
+                    value={editTrackingNumber}
+                    onChange={(e) => setEditTrackingNumber(e.target.value)}
+                    placeholder="e.g., TRK123456789"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all"
+                  />
+                  <p className="text-xs text-gray-500 mt-1.5">Leave empty if not applicable</p>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="sticky bottom-0 px-6 py-4 border-t border-gray-200 bg-gray-50 flex gap-3 justify-end">
+                <button
+                  onClick={closeEditModal}
+                  disabled={updatingOrder}
+                  className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-900 font-bold hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={updateOrder}
+                  disabled={updatingOrder}
+                  className="px-6 py-2.5 bg-black text-white rounded-lg font-bold hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {updatingOrder ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Updating...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
                 </button>
               </div>
             </div>

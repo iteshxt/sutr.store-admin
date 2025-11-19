@@ -55,7 +55,7 @@ export interface Order {
     id?: string;
     orderNumber: string;
     userId: string;
-    status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'paid' | 'completed';
+    status: 'pending' | 'processing' | 'shipped' | 'out for delivery' | 'delivered' | 'cancelled' | 'paid' | 'completed';
     items: OrderItem[];
     shippingAddress: Address;
     billingAddress?: Address;
@@ -67,6 +67,7 @@ export interface Order {
     paymentStatus: string;
     paymentMethod?: string;
     trackingNumber?: string;
+    trackingLink?: string;
     notes?: string;
     customerName?: string;
     customerEmail?: string;

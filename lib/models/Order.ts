@@ -35,7 +35,7 @@ const orderSchema = new Schema<Order>(
         },
         status: {
             type: String,
-            enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+            enum: ['pending', 'processing', 'shipped', 'out for delivery', 'delivered', 'cancelled'],
             default: 'pending',
         },
         items: {
@@ -74,6 +74,7 @@ const orderSchema = new Schema<Order>(
         },
         paymentMethod: String,
         trackingNumber: String,
+        trackingLink: String,
         notes: String,
     },
     {
@@ -86,7 +87,13 @@ orderSchema.index({ userId: 1 });
 orderSchema.index({ status: 1 });
 orderSchema.index({ createdAt: -1 });
 
-const OrderModel: Model<Order> =
-    mongoose.models.Order || mongoose.model<Order>('Order', orderSchema);
+// Properly handle model creation to avoid caching issues
+let OrderModel: Model<Order>;
+
+if (mongoose.models['Order']) {
+    OrderModel = mongoose.models['Order'] as Model<Order>;
+} else {
+    OrderModel = mongoose.model<Order>('Order', orderSchema);
+}
 
 export default OrderModel;
