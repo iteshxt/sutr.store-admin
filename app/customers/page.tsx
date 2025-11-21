@@ -208,7 +208,7 @@ export default function CustomersPage() {
               placeholder="Search customers..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 sm:pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all hover:border-gray-300"
+              className="w-full pl-10 sm:pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all hover:border-gray-300"
             />
           </div>
 
@@ -510,14 +510,6 @@ export default function CustomersPage() {
                 
                 <div className="space-y-2">
                   <button
-                    onClick={handleToggleRole}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-medium text-sm shadow-md hover:shadow-lg"
-                  >
-                    <UserIcon className="w-4 h-4" />
-                    <span>Change to {selectedCustomer.role === 'admin' ? 'Customer' : 'Admin'}</span>
-                  </button>
-
-                  <button
                     onClick={handleDeleteUser}
                     disabled={deletingUser}
                     className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all font-medium text-sm shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
@@ -687,14 +679,6 @@ export default function CustomersPage() {
               <div>
                 <h3 className="font-bold text-gray-900 text-sm uppercase tracking-wider mb-3">Admin Actions</h3>
                 <div className="space-y-2">
-                  <button
-                    onClick={handleToggleRole}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-medium text-sm shadow-md"
-                  >
-                    <UserIcon className="w-4 h-4" />
-                    <span>Change to {selectedCustomer.role === 'admin' ? 'Customer' : 'Admin'}</span>
-                  </button>
-
                   <button
                     onClick={handleDeleteUser}
                     disabled={deletingUser}

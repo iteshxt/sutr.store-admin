@@ -236,7 +236,7 @@ export default function ProfilePage() {
               {!editing && (
                 <button
                   onClick={() => setEditing(true)}
-                  className="px-4 py-2 border border-black text-black rounded-lg hover:bg-gray-50 transition-all font-medium text-sm"
+                  className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 transition-all font-medium text-sm"
                 >
                   Edit Profile
                 </button>
@@ -254,7 +254,7 @@ export default function ProfilePage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-gray-900"
                     placeholder="Enter your name"
                     required
                   />
@@ -283,7 +283,7 @@ export default function ProfilePage() {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-gray-900"
                     placeholder="Enter your phone number"
                   />
                 </div>
@@ -348,7 +348,7 @@ export default function ProfilePage() {
               {!changingPassword && (
                 <button
                   onClick={() => setChangingPassword(true)}
-                  className="px-4 py-2 border border-black text-black rounded-lg hover:bg-gray-50 transition-all font-medium text-sm"
+                  className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 transition-all font-medium text-sm"
                 >
                   Change Password
                 </button>
@@ -365,7 +365,7 @@ export default function ProfilePage() {
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                     placeholder="Enter current password"
                     required
                   />
@@ -379,7 +379,7 @@ export default function ProfilePage() {
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                     placeholder="Enter new password"
                     required
                     minLength={6}
@@ -394,7 +394,7 @@ export default function ProfilePage() {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                     placeholder="Confirm new password"
                     required
                     minLength={6}
@@ -427,22 +427,10 @@ export default function ProfilePage() {
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-600">
                   <CheckCircleIcon className="w-4 h-4 inline text-green-600 mr-1" />
-                  Your password is secure. Last changed: {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'Unknown'}
+                  Your password is secure.
                 </p>
               </div>
             )}
-          </div>
-
-          {/* Account Information */}
-          <div className="bg-blue-50 rounded-xl border border-blue-200 p-4 sm:p-6">
-            <h3 className="text-base sm:text-lg font-bold text-blue-900 mb-4">Account Information</h3>
-            <div className="space-y-2 text-sm text-blue-800">
-              <p className="break-all"><strong>Account ID:</strong> {profile._id}</p>
-              <p className="break-all"><strong>Firebase UID:</strong> {profile.firebaseUid}</p>
-              {profile.createdAt && (
-                <p><strong>Member Since:</strong> {new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
-              )}
-            </div>
           </div>
         </div>
       </div>

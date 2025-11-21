@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import {
   ShoppingBagIcon,
@@ -35,6 +35,21 @@ interface RecentOrder {
   itemCount: number;
 }
 
+interface DashboardData {
+  stats: Stats;
+  pendingOrdersCount: number;
+  topProduct: { name: string; count: number };
+  statusBreakdown: {
+    pending: number;
+    processing: number;
+    shipped: number;
+    outForDelivery: number;
+    delivered: number;
+    cancelled: number;
+  };
+  recentOrders: RecentOrder[];
+}
+
 export default function Dashboard() {
   const { showToast } = useToast();
   const [stats, setStats] = useState<Stats>({
@@ -48,12 +63,18 @@ export default function Dashboard() {
   });
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+  const [topProduct, setTopProduct] = useState({ name: 'No sales', count: 0 });
+  const [statusBreakdown, setStatusBreakdown] = useState({
+    pending: 0,
+    processing: 0,
+    shipped: 0,
+    outForDelivery: 0,
+    delivered: 0,
+    cancelled: 0,
+  });
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -65,6 +86,7 @@ export default function Dashboard() {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
+        next: { revalidate: 30 },
       });
 
       if (!response.ok) {
@@ -76,13 +98,27 @@ export default function Dashboard() {
       if (data.success) {
         setStats(data.stats);
         setRecentOrders(data.recentOrders);
+        setPendingOrdersCount(data.pendingOrdersCount || 0);
+        setTopProduct(data.topProduct || { name: 'No sales', count: 0 });
+        setStatusBreakdown(data.statusBreakdown || {
+          pending: 0,
+          processing: 0,
+          shipped: 0,
+          outForDelivery: 0,
+          delivered: 0,
+          cancelled: 0,
+        });
       }
     } catch (error) {
       showToast('Failed to load dashboard data', 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   const statCards = [
     {
@@ -342,16 +378,96 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="rounded-xl bg-linear-to-br from-orange-50 to-red-50 border border-orange-100 p-6">
+            <div className="rounded-xl bg-linear-to-br from-red-50 to-orange-50 border border-red-100 p-6">
               <div className="flex items-center gap-4">
-                <div className="rounded-xl bg-orange-600 p-3 shadow-lg">
-                  <ShoppingBagIcon className="w-6 h-6 text-white" />
+                <div className="rounded-xl bg-red-600 p-3 shadow-lg">
+                  <ClockIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-orange-800 uppercase tracking-wider">Revenue per Product</p>
-                  <p className="text-2xl font-bold text-orange-900 mt-1">
-                    {stats.totalProducts > 0 ? formatPrice(stats.totalSales / stats.totalProducts) : formatPrice(0)}
-                  </p>
+                  <p className="text-xs font-bold text-red-800 uppercase tracking-wider">Pending Orders</p>
+                  <p className="text-2xl font-bold text-red-900 mt-1">{pendingOrdersCount}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Top Product & Status Breakdown */}
+          <div className="grid gap-6 sm:grid-cols-2">
+            {/* Top Selling Product */}
+            <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-6">
+              <div className="flex items-start justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Top Selling Product</h3>
+                  <p className="text-sm text-gray-600 mt-1">This month</p>
+                </div>
+                <ShoppingBagIcon className="w-6 h-6 text-gray-400" />
+              </div>
+              <div className="bg-linear-to-br from-green-50 to-emerald-50 rounded-lg p-4 border border-green-100">
+                <p className="text-sm text-gray-700 mb-2">Product Name</p>
+                <p className="text-2xl font-bold text-gray-900 mb-3 line-clamp-2">{topProduct.name}</p>
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-xs text-gray-600 mb-1">Units Sold</p>
+                    <p className="text-3xl font-bold text-green-700">{topProduct.count}</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-green-200 flex items-center justify-center">
+                    <ShoppingBagIcon className="w-6 h-6 text-green-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Order Status Breakdown */}
+            <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-6">
+              <div className="flex items-start justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Order Status</h3>
+                  <p className="text-sm text-gray-600 mt-1">All orders breakdown</p>
+                </div>
+                <ChartBarIcon className="w-6 h-6 text-gray-400" />
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <span className="text-sm text-gray-700">Pending</span>
+                  </div>
+                  <span className="font-bold text-gray-900">{statusBreakdown.pending}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                    <span className="text-sm text-gray-700">Processing</span>
+                  </div>
+                  <span className="font-bold text-gray-900">{statusBreakdown.processing}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                    <span className="text-sm text-gray-700">Shipped</span>
+                  </div>
+                  <span className="font-bold text-gray-900">{statusBreakdown.shipped}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                    <span className="text-sm text-gray-700">Out for Delivery</span>
+                  </div>
+                  <span className="font-bold text-gray-900">{statusBreakdown.outForDelivery}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span className="text-sm text-gray-700">Delivered</span>
+                  </div>
+                  <span className="font-bold text-gray-900">{statusBreakdown.delivered}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <span className="text-sm text-gray-700">Cancelled</span>
+                  </div>
+                  <span className="font-bold text-gray-900">{statusBreakdown.cancelled}</span>
                 </div>
               </div>
             </div>

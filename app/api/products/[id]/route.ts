@@ -58,6 +58,14 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         const body = await request.json();
         await connectDB();
 
+        // Validate required fields
+        if (!body.subcategory) {
+            return NextResponse.json(
+                { error: 'Subcategory is required' },
+                { status: 400 }
+            );
+        }
+
         // Validate stock array matches sizes array
         if (body.stock && Array.isArray(body.stock) && body.sizes && Array.isArray(body.sizes)) {
             if (body.stock.length !== body.sizes.length) {
@@ -71,6 +79,14 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         // If name is being updated, regenerate slug
         if (body.name) {
             body.slug = generateSlug(body.name);
+        }
+
+        // Enforce mutual exclusivity: only one can be true
+        if (body.featured && body.newArrival) {
+            return NextResponse.json(
+                { error: 'Product cannot be both featured and new arrival' },
+                { status: 400 }
+            );
         }
 
         const product = await ProductModel.findByIdAndUpdate(

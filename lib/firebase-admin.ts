@@ -25,7 +25,6 @@ export async function verifyAdmin(token: string): Promise<boolean> {
         const decodedToken = await adminAuth.verifyIdToken(token);
         return decodedToken.admin === true;
     } catch (error) {
-        console.error('Error verifying admin token:', error);
         return false;
     }
 }
@@ -34,9 +33,7 @@ export async function verifyAdmin(token: string): Promise<boolean> {
 export async function setAdminClaim(uid: string): Promise<void> {
     try {
         await adminAuth.setCustomUserClaims(uid, { admin: true });
-        console.log(`✅ Admin claim set for user: ${uid}`);
     } catch (error) {
-        console.error('Error setting admin claim:', error);
         throw error;
     }
 }
@@ -45,9 +42,7 @@ export async function setAdminClaim(uid: string): Promise<void> {
 export async function removeAdminClaim(uid: string): Promise<void> {
     try {
         await adminAuth.setCustomUserClaims(uid, { admin: false });
-        console.log(`✅ Admin claim removed for user: ${uid}`);
     } catch (error) {
-        console.error('Error removing admin claim:', error);
         throw error;
     }
 }

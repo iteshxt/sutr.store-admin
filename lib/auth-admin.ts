@@ -15,7 +15,6 @@ export async function verifyAdminAuth(request: NextRequest): Promise<boolean> {
         // Check if user has admin claim
         return decodedToken.admin === true;
     } catch (error) {
-        console.error('Error verifying admin auth:', error);
         return false;
     }
 }
@@ -35,7 +34,6 @@ export async function verifyAdminToken(token: string) {
             admin: true,
         };
     } catch (error) {
-        console.error('Error verifying admin token:', error);
         return null;
     }
 }
@@ -57,7 +55,6 @@ export async function getAuthUser(request: NextRequest) {
             admin: decodedToken.admin === true,
         };
     } catch (error) {
-        console.error('Error getting auth user:', error);
         return null;
     }
 }

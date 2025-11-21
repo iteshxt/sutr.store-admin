@@ -1,9 +1,9 @@
 import mongoose, { Schema, Model } from 'mongoose';
-import { Banner } from '@/types';
+import { Banner, BannerImage } from '@/types';
 
-const bannerSchema = new Schema<Banner>(
+const bannerImageSchema = new Schema<BannerImage>(
     {
-        bannerUrl: {
+        url: {
             type: String,
             required: true,
         },
@@ -11,35 +11,29 @@ const bannerSchema = new Schema<Banner>(
             type: String,
             required: true,
         },
-        title: {
-            type: String,
-            default: 'Website Banner',
+        order: {
+            type: Number,
+            default: 0,
         },
-        link: {
-            type: String,
-            default: null,
+    },
+    { _id: false }
+);
+
+const bannerSchema = new Schema<Banner>(
+    {
+        mobileBanners: {
+            type: [bannerImageSchema],
+            default: [],
         },
-        isActive: {
-            type: Boolean,
-            default: true,
+        desktopBanners: {
+            type: [bannerImageSchema],
+            default: [],
         },
     },
     {
         timestamps: true,
     }
 );
-
-// Only one banner should be active at a time
-bannerSchema.pre('save', async function (next) {
-    if (this.isActive) {
-        // Deactivate all other banners
-        await mongoose.model('Banner').updateMany(
-            { _id: { $ne: this._id }, isActive: true },
-            { isActive: false }
-        );
-    }
-    next();
-});
 
 let BannerModel: Model<Banner>;
 

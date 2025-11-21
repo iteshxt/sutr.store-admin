@@ -2,6 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  compress: true,
+  poweredByHeader: false,
+
+  // Enable PPR and experimental features for better performance
+  experimental: {
+    optimizePackageImports: ['recharts', '@heroicons/react'],
+  },
+
   images: {
     remotePatterns: [
       {
@@ -25,6 +33,7 @@ const nextConfig: NextConfig = {
         hostname: 'lh3.googleusercontent.com',
       },
     ],
+    formats: ['image/avif', 'image/webp'],
   },
 };
 

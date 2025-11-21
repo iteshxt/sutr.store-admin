@@ -9,13 +9,13 @@ export interface Product {
     salePrice?: number;
     images: string[];
     category: string;
-    subcategory?: string;
-    tags?: string[];
+    subcategory: string;
     sizes: string[];
     colors: string[];
     inStock?: boolean[];
     stock?: number[];
     featured?: boolean;
+    newArrival?: boolean;
     // Product Details for "Additional Information" tab
     productDetails?: {
         color?: string;              // Dynamic from DB - e.g., "White", "Black"
@@ -120,14 +120,17 @@ export interface TopProduct {
     revenue: number;
 }
 
+export interface BannerImage {
+    url: string;
+    cloudinaryPublicId: string;
+    order?: number;
+}
+
 export interface Banner {
     _id?: string;
     id?: string;
-    bannerUrl: string;
-    cloudinaryPublicId: string;
-    title?: string;
-    link?: string;
-    isActive?: boolean;
+    mobileBanners: BannerImage[];
+    desktopBanners: BannerImage[];
     createdAt?: Date;
     updatedAt?: Date;
 }

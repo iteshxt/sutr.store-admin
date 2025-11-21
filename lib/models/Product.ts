@@ -49,11 +49,8 @@ const productSchema = new Schema<Product>(
         },
         subcategory: {
             type: String,
+            required: true,
             trim: true,
-        },
-        tags: {
-            type: [String],
-            default: [],
         },
         sizes: {
             type: [String],
@@ -74,6 +71,10 @@ const productSchema = new Schema<Product>(
             default: [],
         },
         featured: {
+            type: Boolean,
+            default: false,
+        },
+        newArrival: {
             type: Boolean,
             default: false,
         },

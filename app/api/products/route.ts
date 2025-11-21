@@ -70,12 +70,12 @@ export async function POST(request: NextRequest) {
 
         // Parse request body
         const body = await request.json();
-        const { name, description, price, salePrice, category, images, sizes, colors, inStock, featured, stock, subcategory, tags, productDetails } = body;
+        const { name, description, price, salePrice, category, images, sizes, colors, inStock, featured, newArrival, stock, subcategory, productDetails } = body;
 
         // Validate required fields
-        if (!name || !description || !price || !category) {
+        if (!name || !description || !price || !category || !subcategory) {
             return NextResponse.json(
-                { error: 'Missing required fields: name, description, price, category' },
+                { error: 'Missing required fields: name, description, price, category, subcategory' },
                 { status: 400 }
             );
         }
@@ -88,6 +88,14 @@ export async function POST(request: NextRequest) {
                     { status: 400 }
                 );
             }
+        }
+
+        // Enforce mutual exclusivity: only one can be true
+        if (featured && newArrival) {
+            return NextResponse.json(
+                { error: 'Product cannot be both featured and new arrival' },
+                { status: 400 }
+            );
         }
 
         // Connect to database
@@ -113,13 +121,13 @@ export async function POST(request: NextRequest) {
             price: parseFloat(price),
             salePrice: salePrice ? parseFloat(salePrice) : undefined,
             category,
-            subcategory: subcategory || undefined,
-            tags: tags || [],
+            subcategory,
             images: images || [],
             sizes: sizes || [],
             colors: colors || [],
             inStock: inStock !== false,
             featured: featured === true,
+            newArrival: newArrival === true,
             stock: stock && Array.isArray(stock) ? stock : [],
             productDetails: productDetails || {},
         });

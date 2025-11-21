@@ -35,7 +35,6 @@ export async function uploadImagesToCloudinary(files: File[]): Promise<string[]>
 
         return await Promise.all(uploadPromises);
     } catch (error) {
-        console.error('Error uploading images:', error);
         throw error;
     }
 }

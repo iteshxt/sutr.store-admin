@@ -45,15 +45,17 @@ export async function GET(request: NextRequest) {
         const ordersByStatus = await Order.aggregate([
             {
                 $group: {
-                    _id: { $ifNull: ['$orderStatus', '$status'] },
+                    _id: '$status',
                     count: { $sum: 1 },
-                    revenue: { $sum: { $ifNull: ['$totalAmount', '$total'] } },
+                    revenue: { $sum: '$total' },
                 },
             },
+            { $sort: { count: -1 } },
         ]);
 
-        // 3. Top Selling Products
-        const topProducts = await Order.aggregate([
+        // 3. Top Selling Products + All Products
+        // Get products with sales
+        const productsWithSales = await Order.aggregate([
             { $unwind: '$items' },
             {
                 $group: {
@@ -63,9 +65,25 @@ export async function GET(request: NextRequest) {
                     totalRevenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
                 },
             },
-            { $sort: { totalQuantity: -1 } },
-            { $limit: 10 },
+            { $sort: { totalRevenue: -1 } },
         ]);
+
+        // Get all products from database
+        const allProducts = await Product.find({}, { _id: 1, name: 1 }).lean();
+
+        // Create a map of products with sales
+        const salesMap = new Map(productsWithSales.map(p => [p._id?.toString() || '', p]));
+
+        // Combine all products with sales data (0 if no sales)
+        const topProducts = allProducts.map(product => {
+            const sales = salesMap.get(product._id?.toString() || '');
+            return {
+                _id: product._id?.toString() || '',
+                name: product.name || 'Unknown Product',
+                totalQuantity: sales?.totalQuantity || 0,
+                totalRevenue: sales?.totalRevenue || 0,
+            };
+        }).sort((a, b) => b.totalRevenue - a.totalRevenue);
 
         // 4. Customer Growth
         const customerGrowth = await User.aggregate([
@@ -144,9 +162,42 @@ export async function GET(request: NextRequest) {
         ]);
 
         // 10. Product Performance
-        const lowStockProducts = await Product.countDocuments({ stock: { $lt: 10 } });
+        // For array fields, we need to use aggregation to properly check stock levels
+        const lowStockAgg = await Product.aggregate([
+            {
+                $addFields: {
+                    totalStock: { $sum: '$stock' }
+                }
+            },
+            {
+                $match: {
+                    totalStock: { $gt: 0, $lt: 10 }
+                }
+            },
+            {
+                $count: 'count'
+            }
+        ]);
+
+        const outOfStockAgg = await Product.aggregate([
+            {
+                $addFields: {
+                    totalStock: { $sum: '$stock' }
+                }
+            },
+            {
+                $match: {
+                    totalStock: 0
+                }
+            },
+            {
+                $count: 'count'
+            }
+        ]);
+
         const totalProducts = await Product.countDocuments();
-        const outOfStockProducts = await Product.countDocuments({ stock: 0 });
+        const lowStockProducts = lowStockAgg[0]?.count || 0;
+        const outOfStockProducts = outOfStockAgg[0]?.count || 0;
 
         return NextResponse.json({
             success: true,

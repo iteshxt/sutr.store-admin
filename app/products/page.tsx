@@ -97,7 +97,7 @@ export default function ProductsPage() {
       const response = await fetch('/api/banners');
       if (response.ok) {
         const data = await response.json();
-        setCurrentBanner(data.banner);
+        setCurrentBanner(data.data);
       }
     } catch (error) {
       console.error('Error fetching banner:', error);
@@ -232,7 +232,7 @@ export default function ProductsPage() {
               placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent bg-white"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent bg-white"
             />
           </div>
           <div className="flex gap-3">
@@ -303,11 +303,18 @@ export default function ProductsPage() {
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-gray-900 truncate">{product.name}</p>
                         </div>
-                        {product.featured && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mt-1">
-                            ⭐ Featured
-                          </span>
-                        )}
+                        <div className="flex gap-1.5 mt-1">
+                          {product.featured && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              ⭐ Featured
+                            </span>
+                          )}
+                          {product.newArrival && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              ✨ New Arrival
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -479,11 +486,18 @@ export default function ProductsPage() {
                           {hasAnyStock(product) ? 'In Stock' : 'Out of Stock'}
                         </span>
                       )}
-                      {product.featured && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          ⭐ Featured
-                        </span>
-                      )}
+                      <div className="flex gap-1.5">
+                        {product.featured && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            ⭐ Featured
+                          </span>
+                        )}
+                        {product.newArrival && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            ✨ New Arrival
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -581,7 +595,7 @@ export default function ProductsPage() {
         onSuccess={(banner) => {
           setCurrentBanner(banner);
         }}
-        currentBanner={currentBanner}
+        currentBanners={currentBanner}
       />
       </div>
     </div>

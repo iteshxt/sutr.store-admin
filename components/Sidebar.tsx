@@ -50,6 +50,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
           headers: {
             'Authorization': `Bearer ${token}`,
           },
+          next: { revalidate: 300 }, // Cache for 5 minutes
         });
 
         if (response.ok) {
@@ -59,7 +60,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
           }
         }
       } catch (error) {
-        console.error('Error fetching admin name:', error);
+        // Silent error handling in production
       }
     };
 
@@ -117,6 +118,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                   key={item.name}
                   href={item.href}
                   onClick={handleLinkClick}
+                  prefetch={true}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
                     isActive
                       ? 'bg-white text-black! font-medium'

@@ -1,14 +1,13 @@
 {
   "name": "sutr.store-admin",
-  "version": "1.2.5",
+  "version": "1.5.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "create-admin": "node scripts/create-admin.js",
-    "test-db": "node scripts/test-database.js"
+    "create-admin": "node scripts/create-admin.js"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",

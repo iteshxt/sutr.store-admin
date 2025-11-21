@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Banner from '@/lib/models/Banner';
 import { verifyAdminAuth } from '@/lib/auth-admin';
-import mongoose from 'mongoose';
 
 export async function DELETE(
     request: NextRequest,
@@ -18,20 +17,46 @@ export async function DELETE(
         await dbConnect();
 
         const { id } = await params;
-        const objectId = new mongoose.Types.ObjectId(id);
+        const body = await request.json();
+        const { deviceType, publicId } = body;
 
-        const banner = await Banner.findByIdAndDelete(objectId);
-
-        if (!banner) {
+        if (!deviceType || !publicId) {
             return NextResponse.json(
-                { error: 'Banner not found' },
+                { error: 'deviceType and publicId are required' },
+                { status: 400 }
+            );
+        }
+
+        if (!['mobile', 'desktop'].includes(deviceType)) {
+            return NextResponse.json(
+                { error: 'deviceType must be either "mobile" or "desktop"' },
+                { status: 400 }
+            );
+        }
+
+        // Remove banner from the appropriate array
+        const field = deviceType === 'mobile' ? 'mobileBanners' : 'desktopBanners';
+        const updateData = {
+            $pull: {
+                [field]: { cloudinaryPublicId: publicId },
+            },
+        };
+
+        const updatedBanners = await Banner.findByIdAndUpdate(id, updateData, {
+            new: true,
+        }).lean();
+
+        if (!updatedBanners) {
+            return NextResponse.json(
+                { error: 'Banners not found' },
                 { status: 404 }
             );
         }
 
         return NextResponse.json({
             success: true,
-            message: 'Banner deleted successfully',
+            message: `${deviceType} banner deleted successfully`,
+            data: updatedBanners,
         });
     } catch (error: any) {
         console.error('Error deleting banner:', error);
@@ -56,28 +81,52 @@ export async function PATCH(
         await dbConnect();
 
         const { id } = await params;
-        const objectId = new mongoose.Types.ObjectId(id);
         const body = await request.json();
+        const { deviceType, bannerOrder, publicId } = body;
 
-        const { title, link, isActive } = body;
+        if (!deviceType || bannerOrder === undefined) {
+            return NextResponse.json(
+                { error: 'deviceType and bannerOrder are required' },
+                { status: 400 }
+            );
+        }
 
-        const updateData: any = {};
-        if (title !== undefined) updateData.title = title;
-        if (link !== undefined) updateData.link = link;
-        if (isActive !== undefined) updateData.isActive = isActive;
+        if (!['mobile', 'desktop'].includes(deviceType)) {
+            return NextResponse.json(
+                { error: 'deviceType must be either "mobile" or "desktop"' },
+                { status: 400 }
+            );
+        }
 
-        const collection = Banner.collection;
-        await collection.updateOne(
-            { _id: objectId },
-            { $set: updateData }
+        // Get current banners
+        const bannerDoc = await Banner.findById(id);
+        if (!bannerDoc) {
+            return NextResponse.json(
+                { error: 'Banners not found' },
+                { status: 404 }
+            );
+        }
+
+        const field = deviceType === 'mobile' ? 'mobileBanners' : 'desktopBanners';
+        const banners = bannerDoc[field as keyof typeof bannerDoc] || [];
+
+        // Update the order for the specific banner
+        const bannerIndex = banners.findIndex(
+            (b: any) => b.cloudinaryPublicId === publicId
         );
+        if (bannerIndex !== -1) {
+            banners[bannerIndex].order = bannerOrder;
+        }
 
-        const updatedBanner = await Banner.findById(objectId).lean();
+        const updateData = { [field]: banners };
+        const updatedBanners = await Banner.findByIdAndUpdate(id, updateData, {
+            new: true,
+        }).lean();
 
         return NextResponse.json({
             success: true,
-            message: 'Banner updated successfully',
-            banner: updatedBanner,
+            message: 'Banner order updated successfully',
+            data: updatedBanners,
         });
     } catch (error: any) {
         console.error('Error updating banner:', error);

@@ -19,7 +19,6 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   const [productId, setProductId] = useState<string>('');
   const [localFiles, setLocalFiles] = useState<File[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [tagsInput, setTagsInput] = useState('');
   const [colorsInput, setColorsInput] = useState('');
   const [stockInput, setStockInput] = useState('');
   const [formData, setFormData] = useState({
@@ -29,13 +28,13 @@ export default function EditProductPage({ params }: EditProductPageProps) {
     salePrice: '',
     category: '',
     subcategory: '',
-    tags: [] as string[],
     stock: [] as number[],
     sizes: [] as string[],
     colors: [] as string[],
     images: [] as string[],
     inStock: [] as boolean[],
     featured: false,
+    newArrival: false,
     // Product Details (for Additional Information tab)
     productDetails: {
       color: '',        // Dynamic - e.g., "White", "Black"
@@ -133,6 +132,10 @@ export default function EditProductPage({ params }: EditProductPageProps) {
             inStockArray = stockArray.map(stock => stock > 0);
           }
           
+          // Enforce mutual exclusivity on load - if both are true, keep featured, set newArrival to false
+          const featured = product.featured ?? false;
+          const newArrival = (product.newArrival ?? false) && !featured;
+
           setFormData({
             name: product.name || '',
             description: product.description || '',
@@ -140,13 +143,13 @@ export default function EditProductPage({ params }: EditProductPageProps) {
             salePrice: product.salePrice?.toString() || '',
             category: product.category || '',
             subcategory: product.subcategory || '',
-            tags: product.tags || [],
             stock: stockArray,
             sizes: product.sizes || [],
             colors: product.colors || [],
             images: product.images || [],
             inStock: inStockArray,
-            featured: product.featured ?? false,
+            featured: featured,
+            newArrival: newArrival,
             // Product Details
             productDetails: {
               color: product.productDetails?.color || '',
@@ -155,8 +158,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
               neck: product.productDetails?.neck || '',
             },
           });
-          // Initialize input strings for tags, colors, and stock
-          setTagsInput(product.tags ? product.tags.join(', ') : '');
+          // Initialize input strings for colors and stock
           setColorsInput(product.colors ? product.colors.join(', ') : '');
           setStockInput(stockArray.length > 0 ? stockArray.join(',') : '');
         } else {
@@ -267,11 +269,9 @@ export default function EditProductPage({ params }: EditProductPageProps) {
     }
   };
 
-  const handleArrayChange = (field: 'sizes' | 'colors' | 'tags', value: string) => {
+  const handleArrayChange = (field: 'sizes' | 'colors', value: string) => {
     // Update the input string state
-    if (field === 'tags') {
-      setTagsInput(value);
-    } else if (field === 'colors') {
+    if (field === 'colors') {
       setColorsInput(value);
     }
     
@@ -313,11 +313,26 @@ export default function EditProductPage({ params }: EditProductPageProps) {
     }));
   };
 
-  const toggleFeature = (feature: 'featured') => {
-    setFormData((prev) => ({
-      ...prev,
-      [feature]: !prev[feature]
-    }));
+  const handleToggleFeatured = () => {
+    setFormData((prev) => {
+      const newFeaturedValue = !prev.featured;
+      return {
+        ...prev,
+        featured: newFeaturedValue,
+        newArrival: newFeaturedValue ? false : prev.newArrival, // If turning featured ON, turn newArrival OFF
+      };
+    });
+  };
+
+  const handleToggleNewArrival = () => {
+    setFormData((prev) => {
+      const newNewArrivalValue = !prev.newArrival;
+      return {
+        ...prev,
+        newArrival: newNewArrivalValue,
+        featured: newNewArrivalValue ? false : prev.featured, // If turning newArrival ON, turn featured OFF
+      };
+    });
   };
 
   return (
@@ -414,7 +429,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
 
                 <div>
                   <label htmlFor="subcategory" className="block text-sm font-semibold text-gray-900 mb-2">
-                    Subcategory <span className="text-gray-400 font-normal">(Optional)</span>
+                    Subcategory
                   </label>
                   <input
                     type="text"
@@ -422,24 +437,11 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                     name="subcategory"
                     value={formData.subcategory || ''}
                     onChange={handleChange}
+                    required
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
                     placeholder="e.g., Casual, Premium"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label htmlFor="tags" className="block text-sm font-semibold text-gray-900 mb-2">
-                  Tags <span className="text-gray-400 font-normal">(comma-separated)</span>
-                </label>
-                <input
-                  type="text"
-                  id="tags"
-                  value={tagsInput}
-                  onChange={(e) => handleArrayChange('tags', e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
-                  placeholder="e.g., trendy, comfortable, casual"
-                />
               </div>
             </div>
 
@@ -510,7 +512,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                 />
                 <p className="text-xs text-gray-500 mt-2">
                   {formData.sizes.length > 0 
-                    ? `Enter ${formData.sizes.length} values (one for each size: ${formData.sizes.join(', ')})`
+                    ? `Enter ${formData.sizes.length} values (one for each size: ${formData.sizes.join(',')})`
                     : 'Select sizes first, then enter stock for each size (comma-separated)'
                   }
                 </p>
@@ -647,50 +649,36 @@ export default function EditProductPage({ params }: EditProductPageProps) {
             <h2 className="text-lg font-semibold text-gray-900 mb-6">Product Status</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
-              {/* Stock Status - Auto-calculated */}
-              <div className="p-4 rounded-xl border border-gray-200 bg-blue-50/50">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">Stock Status</p>
-                    <p className="text-xs text-gray-600">Auto-calculated per size based on stock quantity</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Featured Toggle */}
-              <div className="flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-gray-50/50">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${formData.featured ? 'bg-yellow-100' : 'bg-gray-200'}`}>
-                    <svg className={`w-5 h-5 ${formData.featured ? 'text-yellow-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <label htmlFor="featured" className="block text-sm font-semibold text-gray-900">
-                      Featured
-                    </label>
-                    <p className="text-xs text-gray-500">Show in featured section</p>
-                  </div>
-                </div>
+              {/* Product Status */}
+              <div className="flex gap-4 items-center">
+                {/* Featured */}
                 <button
                   type="button"
-                  onClick={() => toggleFeature('featured')}
-                  className={`
-                    relative inline-flex h-7 w-12 items-center rounded-full transition-colors
-                    ${formData.featured ? 'bg-black' : 'bg-gray-300'}
-                  `}
-                >
-                  <span
-                    className={`
-                      inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-md
-                      ${formData.featured ? 'translate-x-6' : 'translate-x-1'}
-                    `}
-                  />
+                  onClick={handleToggleFeatured}
+                  className={`flex items-center gap-2 px-4 py-3 rounded-lg font-semibold transition-all duration-200 border-2 ${
+                    formData.featured
+                      ? 'bg-yellow-400 text-white border-yellow-500 shadow-md shadow-yellow-300/40'
+                      : 'bg-white text-gray-700 border-gray-200 hover:border-yellow-300 hover:bg-yellow-50/50'
+                  }`}>
+                  <svg className="w-5 h-5 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                  <span>Featured</span>
+                </button>
+
+                {/* New Arrival */}
+                <button
+                  type="button"
+                  onClick={handleToggleNewArrival}
+                  className={`flex items-center gap-2 px-4 py-3 rounded-lg font-semibold transition-all duration-200 border-2 ${
+                    formData.newArrival
+                      ? 'bg-blue-500 text-white border-blue-600 shadow-md shadow-blue-300/40'
+                      : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
+                  }`}>
+                  <svg className="w-5 h-5 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>New Arrival</span>
                 </button>
               </div>
             </div>

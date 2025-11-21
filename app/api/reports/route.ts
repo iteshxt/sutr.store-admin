@@ -54,15 +54,25 @@ export async function GET(request: NextRequest) {
                 break;
         }
 
-        // Sales Report - Include both delivered and shipped orders
-        const completedOrders = await Order.find({
+        // Sales Report - Include both delivered and shipped orders within date range
+        // If no data in range, show data from all time as fallback
+        let completedOrders = await Order.find({
             status: { $in: ['delivered', 'shipped'] },
             createdAt: { $gte: startDate, $lte: endDate }
-        });
+        }).lean();
 
-        const totalRevenue = completedOrders.reduce((sum, order) => {
-            return sum + Number(order.total || 0);
-        }, 0); const totalOrders = completedOrders.length;
+        // If no completed orders in the date range, get all completed orders for context
+        if (completedOrders.length === 0) {
+            completedOrders = await Order.find({
+                status: { $in: ['delivered', 'shipped'] }
+            }).lean();
+        }
+
+        const totalRevenue = completedOrders.reduce((sum, order: any) => {
+            const amount = Number(order.total || order.totalAmount || 0);
+            return sum + amount;
+        }, 0);
+        const totalOrders = completedOrders.length;
         const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
         // Find top selling product
@@ -103,7 +113,9 @@ export async function GET(request: NextRequest) {
         const outOfStockProducts = allProducts.filter(p => getTotalStock(p.stock) === 0).length;
         const totalInventoryValue = allProducts.reduce((sum, product) => {
             return sum + (Number(product.price) * getTotalStock(product.stock));
-        }, 0);        // Customer Report
+        }, 0);
+
+        // Customer Report
         const allUsers = await User.find();
         const totalCustomers = allUsers.length;
 
@@ -125,14 +137,14 @@ export async function GET(request: NextRequest) {
         const orderReport = {
             pending: allOrdersForStatus.filter(o => o.status === 'pending').length,
             processing: allOrdersForStatus.filter(o => o.status === 'processing').length,
-            completed: allOrdersForStatus.filter(o => o.status === 'delivered' || o.status === 'shipped').length,
+            shipped: allOrdersForStatus.filter(o => o.status === 'shipped').length,
+            outForDelivery: allOrdersForStatus.filter(o => o.status === 'out for delivery').length,
+            delivered: allOrdersForStatus.filter(o => o.status === 'delivered').length,
             cancelled: allOrdersForStatus.filter(o => o.status === 'cancelled').length,
         };
 
-        // Also get orders in date range for other reports
-        const allOrders = await Order.find({
-            createdAt: { $gte: startDate, $lte: endDate }
-        }); const report = {
+        // Compile final report
+        const report = {
             salesReport: {
                 totalRevenue,
                 totalOrders,

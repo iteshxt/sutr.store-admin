@@ -37,7 +37,9 @@ interface ReportData {
   orderReport: {
     pending: number;
     processing: number;
-    completed: number;
+    shipped: number;
+    outForDelivery: number;
+    delivered: number;
     cancelled: number;
   };
 }
@@ -55,7 +57,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     fetchReportData();
-  }, [dateRange]);
+  }, [dateRange, selectedReport]);
 
   const fetchReportData = async () => {
     try {
@@ -76,11 +78,14 @@ export default function ReportsPage() {
       }
 
       const data = await response.json();
+      
+      console.log('Report Data:', data);
 
       if (data.success) {
         setReportData(data.report);
       }
     } catch (error) {
+      console.error('Error fetching reports:', error);
       showToast('Failed to load report data', 'error');
     } finally {
       setLoading(false);
@@ -121,7 +126,9 @@ export default function ReportsPage() {
         pdfContent += `ORDER STATUS\n\n`;
         pdfContent += `Pending: ${reportData.orderReport.pending}\n`;
         pdfContent += `Processing: ${reportData.orderReport.processing}\n`;
-        pdfContent += `Completed: ${reportData.orderReport.completed}\n`;
+        pdfContent += `Shipped: ${reportData.orderReport.shipped}\n`;
+        pdfContent += `Out for Delivery: ${reportData.orderReport.outForDelivery}\n`;
+        pdfContent += `Delivered: ${reportData.orderReport.delivered}\n`;
         pdfContent += `Cancelled: ${reportData.orderReport.cancelled}\n`;
       }
 
@@ -172,7 +179,9 @@ export default function ReportsPage() {
         csvContent = 'Status,Count\n';
         csvContent += `Pending,${reportData.orderReport.pending}\n`;
         csvContent += `Processing,${reportData.orderReport.processing}\n`;
-        csvContent += `Completed,${reportData.orderReport.completed}\n`;
+        csvContent += `Shipped,${reportData.orderReport.shipped}\n`;
+        csvContent += `Out for Delivery,${reportData.orderReport.outForDelivery}\n`;
+        csvContent += `Delivered,${reportData.orderReport.delivered}\n`;
         csvContent += `Cancelled,${reportData.orderReport.cancelled}\n`;
       }
 
@@ -240,15 +249,17 @@ export default function ReportsPage() {
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
           
           {/* Filters */}
-          <div className="space-y-3 sm:space-y-0 sm:flex sm:flex-row sm:items-center sm:gap-4 sm:flex-wrap">
+          <div className="space-y-3 sm:space-y-0 sm:flex sm:flex-row sm:items-start sm:gap-4 sm:flex-wrap">
             {/* Date Range Filter */}
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 shrink-0" />
-              <span className="text-xs sm:text-sm font-medium text-gray-700 shrink-0">Period:</span>
+            <div className="w-full sm:w-auto">
+              <div className="flex items-center gap-2 mb-2">
+                <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 shrink-0" />
+                <span className="text-xs sm:text-sm font-medium text-gray-700">Period:</span>
+              </div>
               <select
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value as DateRange)}
-                className="flex-1 sm:flex-initial px-3 py-2 bg-white border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all focus:outline-none focus:ring-2 focus:ring-black"
+                className="w-full sm:w-auto px-3 py-2 bg-white border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all focus:outline-none focus:ring-2 focus:ring-black"
               >
                 <option value="7days">Last 7 Days</option>
                 <option value="30days">Last 30 Days</option>
@@ -259,7 +270,7 @@ export default function ReportsPage() {
 
             {/* Report Type Filter */}
             <div className="w-full sm:w-auto">
-              <div className="flex items-center gap-2 mb-2 sm:mb-0">
+              <div className="flex items-center gap-2 mb-2">
                 <FunnelIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 shrink-0" />
                 <span className="text-xs sm:text-sm font-medium text-gray-700">Type:</span>
               </div>
@@ -510,7 +521,7 @@ export default function ReportsPage() {
                     </div>
                   </div>
 
-                  <div className="grid gap-3 sm:gap-4 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="grid gap-3 sm:gap-4 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-6">
                     <div className="rounded-lg sm:rounded-xl bg-white border border-gray-200 shadow-sm p-4 sm:p-5 lg:p-6 hover:shadow-md transition-all">
                       <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Pending</p>
                       <p className="mt-2 text-xl sm:text-2xl lg:text-3xl font-bold text-yellow-600">{reportData.orderReport.pending}</p>
@@ -530,11 +541,29 @@ export default function ReportsPage() {
                     </div>
 
                     <div className="rounded-lg sm:rounded-xl bg-white border border-gray-200 shadow-sm p-4 sm:p-5 lg:p-6 hover:shadow-md transition-all">
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Completed</p>
-                      <p className="mt-2 text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">{reportData.orderReport.completed}</p>
-                      <div className="mt-2 sm:mt-3 flex items-center gap-1 text-xs text-green-600">
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Shipped</p>
+                      <p className="mt-2 text-xl sm:text-2xl lg:text-3xl font-bold text-purple-600">{reportData.orderReport.shipped}</p>
+                      <div className="mt-2 sm:mt-3 flex items-center gap-1 text-xs text-purple-600">
+                        <ClockIcon className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
+                        <span>In transit</span>
+                      </div>
+                    </div>
+
+                    <div className="rounded-lg sm:rounded-xl bg-white border border-gray-200 shadow-sm p-4 sm:p-5 lg:p-6 hover:shadow-md transition-all">
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Out for Delivery</p>
+                      <p className="mt-2 text-xl sm:text-2xl lg:text-3xl font-bold text-indigo-600">{reportData.orderReport.outForDelivery}</p>
+                      <div className="mt-2 sm:mt-3 flex items-center gap-1 text-xs text-indigo-600">
+                        <ClockIcon className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
+                        <span>Final mile</span>
+                      </div>
+                    </div>
+
+                    <div className="rounded-lg sm:rounded-xl bg-white border border-gray-200 shadow-sm p-4 sm:p-5 lg:p-6 hover:shadow-md transition-all">
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Delivered</p>
+                      <p className="mt-2 text-xl sm:text-2xl lg:text-3xl font-bold text-emerald-600">{reportData.orderReport.delivered}</p>
+                      <div className="mt-2 sm:mt-3 flex items-center gap-1 text-xs text-emerald-600">
                         <CheckCircleIcon className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
-                        <span>Delivered</span>
+                        <span>Completed</span>
                       </div>
                     </div>
 
@@ -548,17 +577,19 @@ export default function ReportsPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-lg sm:rounded-xl bg-white border border-gray-200 shadow-sm p-4 sm:p-5 lg:p-6">
+                    <div className="rounded-lg sm:rounded-xl bg-white border border-gray-200 shadow-sm p-4 sm:p-5 lg:p-6">
                     <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-3 sm:mb-4">Order Status Breakdown</h3>
                     <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-600">
                       <p>• Pending orders: <span className="font-bold text-yellow-600">{reportData.orderReport.pending}</span></p>
                       <p>• Orders being processed: <span className="font-bold text-blue-600">{reportData.orderReport.processing}</span></p>
-                      <p>• Completed orders: <span className="font-bold text-green-600">{reportData.orderReport.completed}</span></p>
+                      <p>• Orders shipped: <span className="font-bold text-purple-600">{reportData.orderReport.shipped}</span></p>
+                      <p>• Orders out for delivery: <span className="font-bold text-indigo-600">{reportData.orderReport.outForDelivery}</span></p>
+                      <p>• Orders delivered: <span className="font-bold text-emerald-600">{reportData.orderReport.delivered}</span></p>
                       <p>• Cancelled orders: <span className="font-bold text-red-600">{reportData.orderReport.cancelled}</span></p>
                       <p className="pt-2 sm:pt-3 border-t border-gray-200">
-                        Fulfillment rate: {(reportData.orderReport.pending + reportData.orderReport.processing + reportData.orderReport.completed + reportData.orderReport.cancelled) > 0
-                          ? ((reportData.orderReport.completed / (reportData.orderReport.pending + reportData.orderReport.processing + reportData.orderReport.completed + reportData.orderReport.cancelled)) * 100).toFixed(1)
-                          : 0}% of orders have been successfully completed.
+                        Fulfillment rate: {(reportData.orderReport.pending + reportData.orderReport.processing + reportData.orderReport.shipped + reportData.orderReport.outForDelivery + reportData.orderReport.delivered + reportData.orderReport.cancelled) > 0
+                          ? ((reportData.orderReport.delivered / (reportData.orderReport.pending + reportData.orderReport.processing + reportData.orderReport.shipped + reportData.orderReport.outForDelivery + reportData.orderReport.delivered + reportData.orderReport.cancelled)) * 100).toFixed(1)
+                          : 0}% of orders have been successfully delivered.
                       </p>
                     </div>
                   </div>
