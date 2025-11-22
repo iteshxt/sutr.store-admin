@@ -10,6 +10,7 @@ import {
   ShieldCheckIcon,
   KeyIcon,
   CheckCircleIcon,
+  WrenchIcon,
 } from '@heroicons/react/24/outline';
 
 
@@ -32,6 +33,8 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<AdminProfile | null>(null);
   const [editing, setEditing] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [maintenanceLoading, setMaintenanceLoading] = useState(false);
 
   // Form states
   const [name, setName] = useState('');
@@ -43,6 +46,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user) {
       fetchProfile();
+      fetchMaintenanceStatus();
     }
   }, [user]);
 
@@ -73,6 +77,51 @@ export default function ProfilePage() {
       showToast('Failed to load profile', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMaintenanceStatus = async () => {
+    try {
+      const response = await fetch('/api/site-settings');
+      const data = await response.json();
+      if (data.success) {
+        setMaintenanceMode(data.settings.maintenance);
+      }
+    } catch (error) {
+      console.error('Failed to fetch maintenance status:', error);
+    }
+  };
+
+  const handleToggleMaintenance = async () => {
+    try {
+      setMaintenanceLoading(true);
+      const { getAuth } = await import('firebase/auth');
+      const auth = getAuth();
+      const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+
+      const response = await fetch('/api/site-settings', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ maintenance: !maintenanceMode }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setMaintenanceMode(!maintenanceMode);
+        showToast(
+          `Maintenance mode ${!maintenanceMode ? 'enabled' : 'disabled'}`,
+          'success'
+        );
+      } else {
+        showToast('Failed to update maintenance status', 'error');
+      }
+    } catch (error) {
+      showToast('Failed to update maintenance status', 'error');
+    } finally {
+      setMaintenanceLoading(false);
     }
   };
 
@@ -431,6 +480,50 @@ export default function ProfilePage() {
                 </p>
               </div>
             )}
+          </div>
+
+          {/* Maintenance Mode Section */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <WrenchIcon className="w-5 h-5" />
+                  Maintenance Mode
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Toggle to display maintenance page on your main site
+                </p>
+              </div>
+              <button
+                onClick={handleToggleMaintenance}
+                disabled={maintenanceLoading}
+                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all ${
+                  maintenanceMode
+                    ? 'bg-red-500 hover:bg-red-600'
+                    : 'bg-gray-300 hover:bg-gray-400'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                <span
+                  className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-all ${
+                    maintenanceMode ? 'translate-x-7' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            <div className="mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200">
+              <p className="text-sm text-blue-800">
+                <span className="font-semibold">Status:</span>{' '}
+                {maintenanceMode ? (
+                  <span className="text-red-600 font-semibold">
+                    🔴 Maintenance Mode ACTIVE - Your main site shows maintenance page
+                  </span>
+                ) : (
+                  <span className="text-green-600 font-semibold">
+                    🟢 Maintenance Mode OFF - Your site is live
+                  </span>
+                )}
+              </p>
+            </div>
           </div>
         </div>
       </div>
