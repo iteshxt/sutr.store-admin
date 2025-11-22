@@ -74,7 +74,7 @@ export default function Dashboard() {
     delivered: 0,
     cancelled: 0,
   });
-const [IsRefereshing, setIsRefereshing]=useState{false};
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
@@ -187,12 +187,12 @@ const [IsRefereshing, setIsRefereshing]=useState{false};
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <div classname="flex items-center gap-3">
-            <ClockIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-            <span className="text-xs sm:text-sm text-gray-600">
-              Last updated: {new Date().toLocaleTimeString()}
-            </span>
-          </div>
+            <div className="flex items-center gap-3">
+              <ClockIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+              <span className="text-xs sm:text-sm text-gray-600">
+                Last updated: {new Date().toLocaleTimeString()}
+              </span>
+            </div>
             <button
               onClick={() => {
                 setIsRefreshing(true);
@@ -204,7 +204,7 @@ const [IsRefereshing, setIsRefereshing]=useState{false};
             >
               <ArrowPathIcon className={`w-5 h-5 sm:w-6 sm:h-6 text-gray-600 ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
-          
+          </div>
         </div>
       </div>
 
