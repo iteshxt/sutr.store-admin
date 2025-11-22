@@ -11,6 +11,7 @@ import {
   ArrowTrendingDownIcon,
   ChartBarIcon,
   ClockIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import { formatPrice, formatDate } from '@/lib/utils';
 import { useToast } from '@/components/ToastProvider';
@@ -73,7 +74,7 @@ export default function Dashboard() {
     delivered: 0,
     cancelled: 0,
   });
-
+const [IsRefereshing, setIsRefereshing]=useState{false};
   const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
@@ -186,11 +187,24 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <div classname="flex items-center gap-3">
             <ClockIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
             <span className="text-xs sm:text-sm text-gray-600">
               Last updated: {new Date().toLocaleTimeString()}
             </span>
           </div>
+            <button
+              onClick={() => {
+                setIsRefreshing(true);
+                fetchDashboardData().finally(() => setIsRefreshing(false));
+              }}
+              disabled={isRefreshing}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Refresh dashboard data"
+            >
+              <ArrowPathIcon className={`w-5 h-5 sm:w-6 sm:h-6 text-gray-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
+          
         </div>
       </div>
 
