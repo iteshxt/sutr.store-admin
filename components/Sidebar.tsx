@@ -16,6 +16,7 @@ import {
   UserCircleIcon,
   ArrowRightStartOnRectangleIcon,
   XMarkIcon,
+  BookOpenIcon,
 } from '@heroicons/react/24/outline';
 
 const navigation = [
@@ -25,6 +26,7 @@ const navigation = [
   { name: 'Customers', href: '/customers', icon: UsersIcon },
   { name: 'Reports', href: '/reports', icon: DocumentChartBarIcon },
   { name: 'Statistic', href: '/statistics', icon: ChartBarIcon },
+  { name: 'Documentation', href: '/docs', icon: BookOpenIcon },
 ];
 
 interface SidebarProps {

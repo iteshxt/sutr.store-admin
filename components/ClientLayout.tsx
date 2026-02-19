@@ -15,6 +15,7 @@ interface ClientLayoutProps {
 export default function ClientLayout({ children }: ClientLayoutProps) {
   const pathname = usePathname();
   const isLoginPage = pathname === '/login';
+  const isDocumentationPage = pathname.startsWith('/docs');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Initialize session timeout and get warning state
@@ -23,6 +24,15 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   // Don't apply auth guard or sidebar to login page
   if (isLoginPage) {
     return <>{children}</>;
+  }
+
+  // Don't apply sidebar to documentation page - just auth guard
+  if (isDocumentationPage) {
+    return (
+      <AuthGuard>
+        {children}
+      </AuthGuard>
+    );
   }
 
   // Apply auth guard and sidebar to all other pages
