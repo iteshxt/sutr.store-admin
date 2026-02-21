@@ -1556,12 +1556,8 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | Feb 11, 2026 | [Itesh Tomar](https://github.com/iteshxt) | Initial operational guide created |
+| 1.5.0 | Feb 11, 2026 | [Itesh Tomar](https://github.com/iteshxt) | Initial operational guide created |
 
 ---
-
-*For technical architecture details, refer to [ARCHITECTURE-SUTR.STORE-ADMIN.md](./ARCHITECTURE-SUTR.STORE-ADMIN.md)*
-
-*For the main e-commerce platform guide, refer to [OPERATIONAL-GUIDE-SUTR.STORE.md](./OPERATIONAL-GUIDE-SUTR.STORE.md)*
 
 *For questions or issues, contact the development team or create an issue in the repository.*

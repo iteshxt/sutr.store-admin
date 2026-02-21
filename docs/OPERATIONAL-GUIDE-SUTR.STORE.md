@@ -1826,6 +1826,4 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ---
 
-*For technical architecture details, refer to [ARCHITECTURE-SUTR.STORE.md](./ARCHITECTURE-SUTR.STORE.md)*
-
 *For questions or issues, contact the development team or create an issue in the repository.*

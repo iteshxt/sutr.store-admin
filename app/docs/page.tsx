@@ -54,7 +54,7 @@ function CodeBlockWithCopy({ children }: { children: React.ReactNode }) {
 
     return (
         <div className="relative group">
-            <pre className="bg-gray-50! text-gray-900! border! border-gray-200! rounded-lg! p-4! overflow-x-auto! mb-4! text-sm!" ref={codeRef}>
+            <pre className="bg-gray-50! text-gray-900! border! border-gray-200! rounded-lg! p-2 md:p-4! overflow-x-auto! mb-4! text-xs md:text-sm!" ref={codeRef}>
                 {children}
             </pre>
             <button
@@ -82,7 +82,9 @@ export default function DocumentationPage() {
     const [showScrollTop, setShowScrollTop] = useState(false);
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const [expandedTocSections, setExpandedTocSections] = useState<Set<string>>(new Set(['h2']));
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const mobileMenuRef = useRef<HTMLDivElement>(null);
 
     // Category display names mapping
     const categoryDisplayNames: Record<string, string> = {
@@ -123,13 +125,19 @@ export default function DocumentationPage() {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setOpenDropdown(null);
             }
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+                const target = event.target as HTMLElement;
+                if (!target.closest('button[aria-label="Open menu"]')) {
+                    setMobileMenuOpen(false);
+                }
+            }
         };
 
-        if (openDropdown) {
+        if (openDropdown || mobileMenuOpen) {
             document.addEventListener('mousedown', handleClickOutside);
             return () => document.removeEventListener('mousedown', handleClickOutside);
         }
-    }, [openDropdown]);
+    }, [openDropdown, mobileMenuOpen]);
 
     // Track scroll position for active heading and scroll-to-top button
     useEffect(() => {
@@ -178,6 +186,7 @@ export default function DocumentationPage() {
     const fetchDoc = async (docId: string) => {
         setDocLoading(true);
         setOpenDropdown(null);
+        setMobileMenuOpen(false);
         try {
             const response = await fetch(`/api/docs?id=${docId}`);
             const data = await response.json();
@@ -217,67 +226,116 @@ export default function DocumentationPage() {
 
     return (
         <div className="min-h-screen bg-white flex flex-col" style={{ paddingTop: '64px' }}>
-            {/* Top Header with Dropdown Navigation */}
+            {/* Top Header with Responsive Navigation */}
             <div className="fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-900">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
-                        {/* Logo and Title */}
+                        {/* Logo and Title on Left */}
                         <div className="flex items-center gap-3">
                             <Logo className="h-8 w-auto" width={100} height={32} />
-                            <span className="text-gray-600">|</span>
-                            <h1 className="text-xl font-bold text-white">Documentation</h1>
+                            <span className="text-gray-600 hidden sm:inline">|</span>
+                            <h1 className="text-xl font-bold text-white hidden sm:inline">Documentation</h1>
                         </div>
 
-                        {/* Dropdowns */}
-                        <div className="flex items-center gap-2" ref={dropdownRef}>
-                            {Object.entries(categories).map(([category, categoryDocs]) => (
-                                <div 
-                                    key={category} 
-                                    className="relative"
-                                    onMouseEnter={() => setOpenDropdown(category)}
-                                    onMouseLeave={() => setOpenDropdown(null)}
-                                >
-                                    <button
-                                        className="px-3 py-2 rounded-lg text-sm font-medium text-gray-200 hover:text-white hover:bg-gray-800 flex items-center gap-1.5 transition-all duration-200"
-                                    >
-                                        {categoryDisplayNames[category] || category}
-                                        <ChevronDownIcon className={`h-4 w-4 transition-transform duration-200 ${openDropdown === category ? 'rotate-180' : ''}`} />
-                                    </button>
+                        {/* Mobile: Centered Title */}
+                        <div className="flex-1 text-center sm:hidden">
+                            <h1 className="text-lg font-bold text-white">Documentation</h1>
+                        </div>
 
-                                    {/* Dropdown Menu */}
+                        {/* Right Side: Hamburger on Mobile, Dropdowns on Desktop */}
+                        <div className="flex items-center gap-2">
+                            {/* Mobile Menu Button - Only on mobile */}
+                            <button
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                className="sm:hidden flex items-center justify-center p-2 text-gray-200 hover:text-white"
+                                aria-label="Open menu"
+                            >
+                                {mobileMenuOpen ? (
+                                    <XMarkIcon className="h-6 w-6" />
+                                ) : (
+                                    <Bars3Icon className="h-6 w-6" />
+                                )}
+                            </button>
+
+                            {/* Desktop Dropdowns - Only on desktop */}
+                            <div className="hidden sm:flex items-center gap-2" ref={dropdownRef}>
+                                {Object.entries(categories).map(([category, categoryDocs]) => (
                                     <div 
-                                        className={`absolute top-full left-0 mt-0 w-64 bg-white border border-gray-200 rounded-lg shadow-xl py-2 z-50 origin-top transition-all duration-150 ease-out ${
-                                            openDropdown === category 
-                                                ? 'opacity-100 scale-y-100 visible' 
-                                                : 'opacity-0 scale-y-95 invisible pointer-events-none'
-                                        }`}
-                                        style={{
-                                            transformOrigin: 'top',
-                                            transform: openDropdown === category ? 'scaleY(1)' : 'scaleY(0.95)',
-                                        }}
+                                        key={category} 
+                                        className="relative"
+                                        onMouseEnter={() => setOpenDropdown(category)}
+                                        onMouseLeave={() => setOpenDropdown(null)}
                                     >
-                                        {categoryDocs.map((doc) => (
-                                            <button
-                                                key={doc.id}
-                                                onClick={() => fetchDoc(doc.id)}
-                                                className={`
-                                                    w-full text-left px-4 py-2.5 text-sm transition-colors duration-150
-                                                    flex items-center gap-2
-                                                    ${selectedDoc?.id === doc.id
-                                                        ? 'bg-gray-100/60 text-gray-900 font-medium'
-                                                        : 'text-gray-700 hover:bg-gray-50'
-                                                    }
-                                                `}
-                                            >
-                                                {doc.title}
-                                            </button>
-                                        ))}
+                                        <button
+                                            className="px-3 py-2 rounded-lg text-sm font-medium text-gray-200 hover:text-white hover:bg-gray-800 flex items-center gap-1.5 transition-all duration-200"
+                                        >
+                                            {categoryDisplayNames[category] || category}
+                                            <ChevronDownIcon className={`h-4 w-4 transition-transform duration-200 ${openDropdown === category ? 'rotate-180' : ''}`} />
+                                        </button>
+
+                                        {/* Dropdown Menu */}
+                                        <div 
+                                            className={`absolute top-full left-0 mt-0 w-64 bg-white border border-gray-200 rounded-lg shadow-xl py-2 z-50 origin-top transition-all duration-150 ease-out ${
+                                                openDropdown === category 
+                                                    ? 'opacity-100 scale-y-100 visible' 
+                                                    : 'opacity-0 scale-y-95 invisible pointer-events-none'
+                                            }`}
+                                            style={{
+                                                transformOrigin: 'top',
+                                                transform: openDropdown === category ? 'scaleY(1)' : 'scaleY(0.95)',
+                                            }}
+                                        >
+                                            {categoryDocs.map((doc) => (
+                                                <button
+                                                    key={doc.id}
+                                                    onClick={() => fetchDoc(doc.id)}
+                                                    className={`
+                                                        w-full text-left px-4 py-2.5 text-sm transition-colors duration-150
+                                                        flex items-center gap-2
+                                                        ${selectedDoc?.id === doc.id
+                                                            ? 'bg-gray-100/60 text-gray-900 font-medium'
+                                                            : 'text-gray-700 hover:bg-gray-50'
+                                                        }
+                                                    `}
+                                                >
+                                                    {doc.title}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                {/* Mobile Menu Dropdown - Only on mobile */}
+                {mobileMenuOpen && (
+                    <div ref={mobileMenuRef} className="sm:hidden bg-gray-900 border-t border-gray-800 py-2">
+                        {Object.entries(categories).map(([category, categoryDocs]) => (
+                            <div key={category}>
+                                <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                    {categoryDisplayNames[category] || category}
+                                </div>
+                                {categoryDocs.map((doc) => (
+                                    <button
+                                        key={doc.id}
+                                        onClick={() => fetchDoc(doc.id)}
+                                        className={`
+                                            w-full text-left px-6 py-2 text-sm transition-colors duration-150
+                                            ${selectedDoc?.id === doc.id
+                                                ? 'bg-gray-800 text-white font-medium border-l-2 border-white'
+                                                : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                                            }
+                                        `}
+                                    >
+                                        {doc.title}
+                                    </button>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Left Sidebar - Table of Contents */}
@@ -357,23 +415,23 @@ export default function DocumentationPage() {
             </aside>
 
             {/* Main Content */}
-            <main className={`pt-16 flex-1 ${selectedDoc ? 'lg:ml-72' : ''}`}>
+            <main className={`pt-6 md:pt-8 flex-1 ${selectedDoc ? 'lg:ml-72' : ''}`}>
                 {docLoading ? (
                     <div className="flex items-center justify-center min-h-[60vh]">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
                     </div>
                 ) : selectedDoc ? (
-                    <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                        <div className="mb-8 flex items-center gap-2 text-sm text-gray-500">
+                    <article className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 md:py-12">
+                        <div className="mb-6 md:mb-8 flex flex-wrap items-center gap-1 md:gap-2 text-xs sm:text-sm text-gray-500">
                             <span className="text-gray-600 font-medium">Documentation</span>
-                            <ChevronRightIcon className="h-3 w-3" />
-                            <span>{selectedDoc.category}</span>
-                            <ChevronRightIcon className="h-3 w-3" />
-                            <span className="text-gray-900 font-medium">{selectedDoc.title}</span>
+                            <ChevronRightIcon className="h-3 w-3 hidden sm:block" />
+                            <span className="line-clamp-1">{selectedDoc.category}</span>
+                            <ChevronRightIcon className="h-3 w-3 hidden sm:block" />
+                            <span className="text-gray-900 font-medium line-clamp-1">{selectedDoc.title}</span>
                         </div>
 
                         {/* Markdown Content */}
-                        <div className="prose prose-lg prose-gray max-w-none prose-code:bg-gray-50 prose-code:text-gray-900 prose-pre:bg-gray-50 prose-pre:text-gray-900">
+                        <div className="prose prose-sm sm:prose-base md:prose-lg prose-gray max-w-none prose-code:bg-gray-50 prose-code:text-gray-900 prose-pre:bg-gray-50 prose-pre:text-gray-900">
                             <ReactMarkdown
                                 remarkPlugins={[remarkGfm]}
                                 components={{
@@ -382,42 +440,42 @@ export default function DocumentationPage() {
                                             .toLowerCase()
                                             .replace(/[^a-z0-9\s-]/g, '')
                                             .replace(/\s+/g, '-');
-                                        return <h1 id={id} className="text-4xl font-bold mt-8 mb-4 text-black" {...props}>{children}</h1>;
+                                        return <h1 id={id} className="text-2xl sm:text-3xl md:text-4xl font-bold mt-6 md:mt-8 mb-3 md:mb-4 text-black" {...props}>{children}</h1>;
                                     },
                                     h2: ({ children, ...props }) => {
                                         const id = String(children)
                                             .toLowerCase()
                                             .replace(/[^a-z0-9\s-]/g, '')
                                             .replace(/\s+/g, '-');
-                                        return <h2 id={id} className="text-3xl font-bold mt-7 mb-3 text-black" {...props}>{children}</h2>;
+                                        return <h2 id={id} className="text-xl sm:text-2xl md:text-3xl font-bold mt-5 md:mt-7 mb-2 md:mb-3 text-black" {...props}>{children}</h2>;
                                     },
                                     h3: ({ children, ...props }) => {
                                         const id = String(children)
                                             .toLowerCase()
                                             .replace(/[^a-z0-9\s-]/g, '')
                                             .replace(/\s+/g, '-');
-                                        return <h3 id={id} className="text-2xl font-semibold mt-6 mb-3 text-black" {...props}>{children}</h3>;
+                                        return <h3 id={id} className="text-lg sm:text-xl md:text-2xl font-semibold mt-4 md:mt-6 mb-2 md:mb-3 text-black" {...props}>{children}</h3>;
                                     },
                                     h4: ({ children, ...props }) => {
                                         const id = String(children)
                                             .toLowerCase()
                                             .replace(/[^a-z0-9\s-]/g, '')
                                             .replace(/\s+/g, '-');
-                                        return <h4 id={id} className="text-xl font-semibold mt-5 mb-2 text-black" {...props}>{children}</h4>;
+                                        return <h4 id={id} className="text-base sm:text-lg md:text-xl font-semibold mt-3 md:mt-5 mb-2 text-black" {...props}>{children}</h4>;
                                     },
                                     h5: ({ children, ...props }) => {
                                         const id = String(children)
                                             .toLowerCase()
                                             .replace(/[^a-z0-9\s-]/g, '')
                                             .replace(/\s+/g, '-');
-                                        return <h5 id={id} className="text-lg font-semibold mt-4 mb-2 text-gray-900" {...props}>{children}</h5>;
+                                        return <h5 id={id} className="text-sm sm:text-base md:text-lg font-semibold mt-3 md:mt-4 mb-2 text-gray-900" {...props}>{children}</h5>;
                                     },
                                     h6: ({ children, ...props }) => {
                                         const id = String(children)
                                             .toLowerCase()
                                             .replace(/[^a-z0-9\s-]/g, '')
                                             .replace(/\s+/g, '-');
-                                        return <h6 id={id} className="text-base font-semibold mt-3 mb-2 text-gray-800" {...props}>{children}</h6>;
+                                        return <h6 id={id} className="text-xs sm:text-sm md:text-base font-semibold mt-2 md:mt-3 mb-2 text-gray-800" {...props}>{children}</h6>;
                                     },
                                     a: ({ href, children, ...props }) => {
                                         // Handle anchor links
@@ -430,7 +488,7 @@ export default function DocumentationPage() {
                                                         const sectionId = href.substring(1);
                                                         scrollToHeading(sectionId);
                                                     }}
-                                                    className="text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                                                    className="text-blue-600 hover:text-blue-800 underline cursor-pointer wrap-break-words"
                                                     {...props}
                                                 >
                                                     {children}
@@ -441,7 +499,7 @@ export default function DocumentationPage() {
                                         return (
                                             <a
                                                 href={href}
-                                                className="text-blue-600 hover:text-blue-800 underline"
+                                                className="text-blue-600 hover:text-blue-800 underline wrabreak-words"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 {...props}
@@ -454,7 +512,7 @@ export default function DocumentationPage() {
                                         const isInline = !className;
                                         if (isInline) {
                                             return (
-                                                <code className="px-1.5! py-0.5! bg-gray-100! text-gray-800! rounded! text-sm! font-mono!" {...props}>
+                                                <code className="px-1.5! py-0.5! bg-gray-100! text-gray-800! rounded! text-xs sm:text-sm! font-mono! wrap-break-words" {...props}>
                                                     {children}
                                                 </code>
                                             );
@@ -477,57 +535,57 @@ export default function DocumentationPage() {
                         </div>
 
                         {/* Navigation footer */}
-                        <div className="mt-12 pt-6 border-t border-gray-200">
-                            <div className="flex items-center justify-between">
+                        <div className="mt-8 md:mt-12 pt-4 md:pt-6 border-t border-gray-200">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                 {getPrevDoc() && (
                                     <button
                                         onClick={() => fetchDoc(getPrevDoc()!.id)}
-                                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-black"
+                                        className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 hover:text-black transition-colors"
                                     >
-                                        <ChevronRightIcon className="h-4 w-4 rotate-180" />
-                                        <span>{getPrevDoc()!.title}</span>
+                                        <ChevronRightIcon className="h-3 w-3 sm:h-4 sm:w-4 rotate-180 shrink-0" />
+                                        <span className="line-clamp-2">{getPrevDoc()!.title}</span>
                                     </button>
                                 )}
-                                <div className="flex-1" />
+                                <div className="hidden sm:flex-1" />
                                 {getNextDoc() && (
                                     <button
                                         onClick={() => fetchDoc(getNextDoc()!.id)}
-                                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-black"
+                                        className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 hover:text-black transition-colors"
                                     >
-                                        <span>{getNextDoc()!.title}</span>
-                                        <ChevronRightIcon className="h-4 w-4" />
+                                        <span className="line-clamp-2">{getNextDoc()!.title}</span>
+                                        <ChevronRightIcon className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
                                     </button>
                                 )}
                             </div>
                         </div>
                     </article>
                 ) : (
-                    <div className="w-full flex items-center justify-center py-12">
-                        <div className="w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+                    <div className="w-full flex items-center justify-center py-8 md:py-12">
+                        <div className="w-full max-w-6xl px-3 sm:px-4 md:px-6 lg:px-8">
                             {/* Landing Page Header */}
-                            <div className="mb-12 text-center">
-                                <h2 className="text-4xl font-bold text-black mb-3">Documentation</h2>
-                                <p className="text-lg text-gray-600">Select a guide to get started</p>
+                            <div className="mb-8 md:mb-12 text-center">
+                                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-black mb-2 md:mb-3">Documentation</h2>
+                                <p className="text-sm sm:text-base md:text-lg text-gray-600">Select a guide to get started</p>
                             </div>
                             
-                            {/* 2x2 Grid of Documents */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-                                {docs.slice(0, 4).map((doc) => (
+                            {/* Responsive Grid of Documents */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 md:gap-6 w-full">
+                                {docs.slice(0, 6).map((doc) => (
                                     <button
                                         key={doc.id}
                                         onClick={() => fetchDoc(doc.id)}
-                                        className="group p-6 bg-white border-2 border-gray-200 rounded-lg hover:border-black hover:shadow-lg transition-all duration-200 text-left"
+                                        className="group p-4 md:p-6 bg-white border-2 border-gray-200 rounded-lg hover:border-black hover:shadow-lg transition-all duration-200 text-left flex flex-col"
                                     >
-                                        <div className="flex items-start gap-4">
-                                            <div className="p-3 bg-gray-100 rounded-lg group-hover:bg-black transition-colors duration-200">
-                                                <DocumentTextIcon className="h-6 w-6 text-gray-700 group-hover:text-white transition-colors duration-200" />
+                                        <div className="flex items-start gap-3 md:gap-4">
+                                            <div className="p-2 md:p-3 bg-gray-100 rounded-lg group-hover:bg-black transition-colors duration-200 shrink-0">
+                                                <DocumentTextIcon className="h-5 w-5 md:h-6 md:w-6 text-gray-700 group-hover:text-white transition-colors duration-200" />
                                             </div>
-                                            <div className="flex-1">
-                                                <h3 className="text-lg font-bold text-black mb-2 group-hover:text-gray-800">{getDocDisplayTitle(doc)}</h3>
-                                                <p className="text-sm text-gray-600 mb-3 group-hover:text-gray-700">
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-sm md:text-lg font-bold text-black mb-1 md:mb-2 group-hover:text-gray-800 line-clamp-2">{getDocDisplayTitle(doc)}</h3>
+                                                <p className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3 group-hover:text-gray-700 line-clamp-1">
                                                     {doc.category}
                                                 </p>
-                                                <div className="inline-block text-sm font-medium text-black group-hover:translate-x-1 transition-transform duration-200">
+                                                <div className="inline-block text-xs md:text-sm font-medium text-black group-hover:translate-x-1 transition-transform duration-200">
                                                     View Guide →
                                                 </div>
                                             </div>
@@ -537,10 +595,10 @@ export default function DocumentationPage() {
                             </div>
 
                             {/* Additional Info */}
-                            {docs.length > 4 && (
-                                <div className="mt-12 text-center">
-                                    <p className="text-gray-600 mb-4">
-                                        {docs.length - 4} more guides available in the navigation menu above
+                            {docs.length > 6 && (
+                                <div className="mt-8 md:mt-12 text-center">
+                                    <p className="text-xs sm:text-sm text-gray-600">
+                                        {docs.length - 6} more guides available in the navigation menu above
                                     </p>
                                 </div>
                             )}
@@ -553,10 +611,10 @@ export default function DocumentationPage() {
             {showScrollTop && (
                 <button
                     onClick={scrollToTop}
-                    className="fixed bottom-6 right-6 p-3 bg-black text-white rounded-full shadow-lg hover:bg-gray-800 transition-colors z-40"
+                    className="fixed bottom-4 right-4 md:bottom-6 md:right-6 p-2 md:p-3 bg-black text-white rounded-full shadow-lg hover:bg-gray-800 transition-colors z-40"
                     aria-label="Scroll to top"
                 >
-                    <ChevronUpIcon className="h-5 w-5" />
+                    <ChevronUpIcon className="h-5 w-5 md:h-6 md:w-6" />
                 </button>
             )}
         </div>
